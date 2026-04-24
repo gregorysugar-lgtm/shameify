@@ -1,0 +1,3 @@
+# Copy this to .dev.vars (gitignored) for local development
+# Value must match CONFIG.PIN in index.html
+SHAME_PIN=shame
