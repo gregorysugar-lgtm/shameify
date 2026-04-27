@@ -286,7 +286,10 @@ input[type="date"]{ color-scheme:light; }
       <div style="display:flex;align-items:center;gap:10px;min-width:0;">
         <div id="headerMeta" class="hide-mob" style="text-align:right;min-width:0;display:none;">
           <div id="headerUserName" class="mono" style="font-size:13px;font-weight:600;color:var(--coral-deep);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
-          <div id="headerShamePoints" class="mono" style="font-size:11px;color:var(--ash);"></div>
+          <div style="display:flex;align-items:center;gap:8px;justify-content:flex-end;">
+            <div id="headerShamePoints" class="mono" style="font-size:11px;color:var(--ash);"></div>
+            <button id="switchIdentityBtn" onclick="switchIdentity()" class="hidden mono" style="font-size:10px;color:var(--ash-2);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px;">Not you?</button>
+          </div>
         </div>
         <button onclick="doLogout()" class="btn ghost" style="padding:7px 14px;font-size:12px;">Log out</button>
         <button onclick="showShameForm('other')" class="btn ghost" style="padding:7px 14px;font-size:12px;">Shame Others</button>
@@ -414,6 +417,18 @@ input[type="date"]{ color-scheme:light; }
       <p id="penanceText" style="font-size:15px;line-height:1.6;color:var(--ink-soft);"></p>
     </div>
     <button onclick="closePenanceModal()" class="btn coral full">I accept my punishment →</button>
+  </div>
+</div>
+
+<!-- LineZero Identity Picker -->
+<div id="identityModal" class="modal-overlay hidden" style="z-index:10000;align-items:center;">
+  <div class="card" style="padding:36px;max-width:580px;width:100%;max-height:90vh;overflow-y:auto;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <span class="stamp stamp-coral" style="margin-bottom:16px;display:inline-flex;">LineZero</span>
+      <h2 class="serif" style="font-size:40px;font-style:italic;color:var(--ink);margin-top:12px;">Who are you?</h2>
+      <p class="mono" style="font-size:11px;color:var(--ash);margin-top:6px;">Claim your identity. Your shame follows you across sessions.</p>
+    </div>
+    <div id="identityGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;"></div>
   </div>
 </div>
 
@@ -816,12 +831,61 @@ function getUserTitle(user) {
   return getShameTitle(user.shame_points);
 }
 
+const LZ_ID_KEY = 'shameify_lz_identity';
+function getSavedIdentity() { return localStorage.getItem(LZ_ID_KEY); }
+function saveIdentity(userId) { localStorage.setItem(LZ_ID_KEY, userId); }
+
+function showIdentityPicker() {
+  const AVATAR_COLORS = [
+    'linear-gradient(135deg,#C8A45C,#B45239)',
+    'linear-gradient(135deg,#6B7A4F,#3E4A2F)',
+    'linear-gradient(135deg,#5B3A4A,#8B5A6A)',
+    'linear-gradient(135deg,#D87654,#B45239)',
+    'linear-gradient(135deg,#8B6F47,#5C4A2E)',
+  ];
+  const grid = document.getElementById('identityGrid');
+  grid.innerHTML = state.users.map((u, i) => {
+    const initials = u.name.split(' ').map(p => p[0]).join('').slice(0,2).toUpperCase();
+    const color = AVATAR_COLORS[i % AVATAR_COLORS.length];
+    const t = getUserTitle(u);
+    return `
+      <button onclick="claimIdentity('${u.id}')" style="text-align:center;padding:20px 12px;border:1px solid var(--line);border-radius:16px;background:#FBF7EC;cursor:pointer;font-family:'Geist',sans-serif;transition:all .15s;" onmouseover="this.style.borderColor='var(--coral)';this.style.background='rgba(216,118,84,0.06)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--line)';this.style.background='#FBF7EC';this.style.transform='none'">
+        <div style="width:44px;height:44px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;margin:0 auto 10px;">${initials}</div>
+        <div style="font-weight:500;font-size:13px;color:var(--ink);margin-bottom:4px;">${escHtml(u.name)}</div>
+        <div style="font-size:10px;color:${t.color};font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;">${escHtml(t.title)}</div>
+      </button>`;
+  }).join('');
+  document.getElementById('identityModal').classList.remove('hidden');
+}
+
+function claimIdentity(userId) {
+  saveIdentity(userId);
+  const user = state.users.find(u => u.id === userId);
+  state.currentUser = user;
+  saveSession({ token: 'demo', userId });
+  // Pre-ack existing infractions so only future shames trigger notifications
+  const ackedKey = 'shameify_acked_' + userId;
+  if (!localStorage.getItem(ackedKey)) {
+    const ids = (user.infractions || []).map(i => i.id);
+    localStorage.setItem(ackedKey, JSON.stringify(ids));
+  }
+  document.getElementById('identityModal').classList.add('hidden');
+  showMainApp();
+}
+
 function enterDemoMode() {
   state.demoMode = true;
   state.users = LINEZERO_USERS.map(u => ({ ...u, infractions: u.infractions.map(i => ({...i})), badges: [...u.badges] }));
-  state.currentUser = state.users.find(u => u.id === 'lz_greg');
-  saveSession({ token: 'demo', userId: 'lz_greg' });
-  showMainApp();
+  const savedId  = getSavedIdentity();
+  const savedUser = savedId ? state.users.find(u => u.id === savedId) : null;
+  if (savedUser) {
+    state.currentUser = savedUser;
+    saveSession({ token: 'demo', userId: savedId });
+    showMainApp();
+  } else {
+    document.getElementById('authGate').style.display = 'none';
+    showIdentityPicker();
+  }
 }
 
 async function doLogout() {
@@ -875,6 +939,14 @@ function updateHeader() {
   document.getElementById('headerShamePoints').textContent = `${user.shame_points} pts — ${t.title}`;
   const meta = document.getElementById('headerMeta');
   if (meta) meta.style.display = 'block';
+  const switchBtn = document.getElementById('switchIdentityBtn');
+  if (switchBtn && state.demoMode) switchBtn.classList.remove('hidden');
+}
+
+function switchIdentity() {
+  localStorage.removeItem(LZ_ID_KEY);
+  document.getElementById('mainApp').classList.add('hidden');
+  showIdentityPicker();
 }
 
 if (new URL(location.href).searchParams.has('linezero')) {
