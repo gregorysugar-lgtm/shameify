@@ -340,7 +340,7 @@ input[type="date"]{ color-scheme:light; }
         <div class="card" style="padding:28px;">
           <div class="eyebrow" style="margin-bottom:20px;">Custom Infraction Report</div>
           <div style="display:flex;flex-direction:column;gap:16px;">
-            <div><label>Who is being shamed?</label><select id="shameTarget"></select></div>
+            <div><label>Who is being shamed?</label><select id="shameTarget" onchange="updateDemeritLabel()"></select></div>
             <div><label>What did you say you'd do?</label><input type="text" id="infraTitle" placeholder="e.g. 'finish the Q3 deck by EOD Friday'"></div>
             <div><label>Deadline (that you missed)</label><input type="date" id="infraDeadline"></div>
             <div><label>Witnesses to your failure</label><input type="text" id="infraWitness" placeholder="e.g. 'the entire team, unfortunately'"></div>
@@ -350,7 +350,7 @@ input[type="date"]{ color-scheme:light; }
         </div>
         <div>
           <div class="eyebrow" style="margin-bottom:12px;">Demerit Catalog</div>
-          <p class="mono" style="font-size:11px;color:var(--ash);margin-bottom:14px;">Pre-classified corporate sins. Click to plead guilty.</p>
+          <p class="mono" style="font-size:11px;color:var(--ash);margin-bottom:14px;">Pre-classified corporate sins. <span id="demeritTargetLabel">Click to plead guilty.</span></p>
           <div class="card" style="overflow:hidden;"><div id="demeritList"></div></div>
         </div>
       </div>
@@ -996,6 +996,7 @@ function showSection(id) {
       ).join('');
       sel.value = state.session?.userId || '';
     }
+    updateDemeritLabel();
   }
   if (id === 'achievements')     renderAchievements();
   if (id === 'dailyReport')      renderDailyReport();
@@ -1065,6 +1066,20 @@ function showShameForm(mode) {
   } else {
     sel.value = state.session?.userId || '';
   }
+  updateDemeritLabel();
+}
+
+function updateDemeritLabel() {
+  const sel = document.getElementById('shameTarget');
+  const label = document.getElementById('demeritTargetLabel');
+  if (!label || !sel) return;
+  const isSelf = sel.value === state.session?.userId;
+  if (isSelf) {
+    label.textContent = 'Click to plead guilty.';
+  } else {
+    const u = state.users.find(u => u.id === sel.value);
+    label.textContent = u ? `Click to charge ${u.name.split(' ')[0]}.` : 'Click to charge.';
+  }
 }
 
 function renderDemeritCatalog() {
@@ -1084,7 +1099,10 @@ function renderDemeritCatalog() {
 async function quickDemerit(id) {
   const d = CONFIG.DEMERITS.find(x => x.id === id);
   if (!d) return;
-  await addInfraction({ demeritId: d.id, title: d.name, points: d.points, witness: 'Self-reported' });
+  const sel = document.getElementById('shameTarget');
+  const isSelf = !sel || sel.value === state.session?.userId;
+  const witness = isSelf ? 'Self-reported' : (state.currentUser?.name || 'Anonymous');
+  await addInfraction({ demeritId: d.id, title: d.name, points: d.points, witness });
 }
 
 async function submitCustomInfraction() {
