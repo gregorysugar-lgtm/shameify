@@ -450,7 +450,10 @@ input[type="date"]{ color-scheme:light; }
     <p class="mono" style="font-size:11px;color:var(--ash-2);text-align:center;line-height:1.6;margin-bottom:20px;">
       They will receive their shamification and assigned penance<br>the next time they open the app. 🌚
     </p>
-    <button onclick="closeShameFiledModal()" class="btn coral full">Filed. My work here is done →</button>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button onclick="shareShameToTeams()" class="btn ghost full">Share to Teams →</button>
+      <button onclick="closeShameFiledModal()" class="btn coral full">Filed. My work here is done →</button>
+    </div>
   </div>
 </div>
 
@@ -1169,7 +1172,7 @@ async function addInfraction(infraction) {
     ackInfraction(result.id);
     showPenanceModal(result.points);
   } else {
-    showShameFiledModal(result.points, target);
+    showShameFiledModal(result.points, target, infraction.title);
   }
 }
 
@@ -1217,12 +1220,21 @@ function closePenanceModal() {
   }
 }
 
-function showShameFiledModal(points, targetUser) {
-  document.getElementById('shameFiledName').textContent = targetUser?.name || 'them';
+let _lastFiledShame = null;
+function showShameFiledModal(points, targetUser, infrTitle) {
+  _lastFiledShame = { name: targetUser?.name || 'them', points, title: infrTitle || '' };
+  document.getElementById('shameFiledName').textContent = _lastFiledShame.name;
   document.getElementById('shameFiledPoints').textContent = '+' + points;
   document.getElementById('shameFiledModal').classList.remove('hidden');
 }
 function closeShameFiledModal() { document.getElementById('shameFiledModal').classList.add('hidden'); }
+function shareShameToTeams() {
+  if (!_lastFiledShame) return;
+  const { name, points, title } = _lastFiledShame;
+  const msg = `📋 Shame Report: ${name} has been formally charged with "${title}" — +${points} shame points added to their permanent record.\n\nSee the full Wall of Shame → https://getshamed.com/?linezero`;
+  const url = 'https://teams.microsoft.com/l/chat/0/0?users=&message=' + encodeURIComponent(msg);
+  window.open(url, '_blank');
+}
 
 // ═══════════════════════════════════════════════════════════════════
 // ACHIEVEMENTS
