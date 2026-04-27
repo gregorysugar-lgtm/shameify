@@ -289,7 +289,8 @@ input[type="date"]{ color-scheme:light; }
           <div id="headerShamePoints" class="mono" style="font-size:11px;color:var(--ash);"></div>
         </div>
         <button onclick="doLogout()" class="btn ghost" style="padding:7px 14px;font-size:12px;">Log out</button>
-        <button onclick="showSection('submitInfraction')" class="btn coral" style="padding:7px 14px;font-size:12px;">+ Submit</button>
+        <button onclick="showShameForm('other')" class="btn ghost" style="padding:7px 14px;font-size:12px;">Shame Others</button>
+        <button onclick="showShameForm('self')" class="btn coral" style="padding:7px 14px;font-size:12px;">Self Shame</button>
       </div>
     </div>
   </header>
@@ -336,6 +337,7 @@ input[type="date"]{ color-scheme:light; }
         <div class="card" style="padding:28px;">
           <div class="eyebrow" style="margin-bottom:20px;">Custom Infraction Report</div>
           <div style="display:flex;flex-direction:column;gap:16px;">
+            <div><label>Who is being shamed?</label><select id="shameTarget"></select></div>
             <div><label>What did you say you'd do?</label><input type="text" id="infraTitle" placeholder="e.g. 'finish the Q3 deck by EOD Friday'"></div>
             <div><label>Deadline (that you missed)</label><input type="date" id="infraDeadline"></div>
             <div><label>Witnesses to your failure</label><input type="text" id="infraWitness" placeholder="e.g. 'the entire team, unfortunately'"></div>
@@ -570,6 +572,7 @@ const LINEZERO_USERS = [
   {
     id: 'lz_george', name: 'George Haddad', shame_points: 675, infraction_count: 8,
     badges: ['early_adopter','calendar_tetris','email_warrior','boomerang','deck_criminal','ooo_liar','calendar_ghost','synergy_devotee'],
+    customTitle: 'Waaaaaiting for what??!', customTitleColor: '#D87654',
     joined_at: _ago(45), last_infraction_title: 'Reply-All on 200-Person Chain', last_infraction_ts: _ago(3),
     infractions: [
       { id:'ig1', user_id:'lz_george', title:'Reply-All on 200-Person Chain',        points:500, timestamp_ms:_ago(3),  witness:'Entire company',      deadline:'' },
@@ -579,19 +582,18 @@ const LINEZERO_USERS = [
     ],
   },
   {
-    id: 'lz_joy', name: 'Joy Fajardo', shame_points: 480, infraction_count: 6,
-    badges: ['early_adopter','calendar_tetris','email_warrior','boomerang','deck_criminal','ooo_liar'],
-    joined_at: _ago(40), last_infraction_title: 'Sent Emails While "Out of Office"', last_infraction_ts: _ago(1),
+    id: 'lz_joy', name: 'Joy Fajardo', shame_points: 50, infraction_count: 1,
+    badges: ['early_adopter'],
+    customTitle: "Anthropic didn't wait, good for now", customTitleColor: '#6B7A4F',
+    joined_at: _ago(40), last_infraction_title: 'Missed Deadline', last_infraction_ts: _ago(6),
     infractions: [
-      { id:'ij1', user_id:'lz_joy', title:'Sent Emails While "Out of Office"',      points: 60, timestamp_ms:_ago(1),  witness:'Slack receipts',      deadline:'' },
-      { id:'ij2', user_id:'lz_joy', title:'"Circling Back to Circle Back"',          points: 75, timestamp_ms:_ago(7),  witness:'George',              deadline:'' },
-      { id:'ij3', user_id:'lz_joy', title:'"Deck Incoming" — 87 Slides',             points:120, timestamp_ms:_ago(14), witness:'Everyone on the call', deadline:'' },
-      { id:'ij4', user_id:'lz_joy', title:'Said "Let\'s Circle Back"',               points: 10, timestamp_ms:_ago(20), witness:'Self-reported',        deadline:'' },
+      { id:'ij1', user_id:'lz_joy', title:'Missed Deadline',                         points: 50, timestamp_ms:_ago(6),  witness:'Self-reported',       deadline:'' },
     ],
   },
   {
-    id: 'lz_mehmet', name: 'Mehmet Akcagliya', shame_points: 355, infraction_count: 4,
+    id: 'lz_mehmet', name: 'Mehmet Akcagliyan', shame_points: 355, infraction_count: 4,
     badges: ['early_adopter','calendar_tetris','email_warrior','boomerang','deck_criminal'],
+    customTitle: 'Sloth running the DMV', customTitleColor: '#B45239',
     joined_at: _ago(38), last_infraction_title: 'Scheduled 4:47pm Friday "Quick Sync"', last_infraction_ts: _ago(5),
     infractions: [
       { id:'im1', user_id:'lz_mehmet', title:'Scheduled 4:47pm Friday "Quick Sync"', points:250, timestamp_ms:_ago(5),  witness:'The team',            deadline:'' },
@@ -603,6 +605,7 @@ const LINEZERO_USERS = [
   {
     id: 'lz_victoria', name: 'Victoria Duran', shame_points: 290, infraction_count: 4,
     badges: ['early_adopter','calendar_tetris','email_warrior'],
+    customTitle: 'Slower than Molasses', customTitleColor: '#C8A45C',
     joined_at: _ago(35), last_infraction_title: '"Just Following Up" (3rd Time)', last_infraction_ts: _ago(4),
     infractions: [
       { id:'iv1', user_id:'lz_victoria', title:'"Just Following Up" (3rd Time)',      points: 35, timestamp_ms:_ago(4),  witness:'Michael',             deadline:'' },
@@ -614,6 +617,7 @@ const LINEZERO_USERS = [
   {
     id: 'lz_michael', name: 'Michael Baskhairoun', shame_points: 240, infraction_count: 3,
     badges: ['early_adopter','calendar_tetris','email_warrior'],
+    customTitle: 'Waaaaaiting for what??!', customTitleColor: '#D87654',
     joined_at: _ago(32), last_infraction_title: 'Replied to Wrong Email Thread', last_infraction_ts: _ago(6),
     infractions: [
       { id:'imb1', user_id:'lz_michael', title:'Replied to Wrong Email Thread',       points: 45, timestamp_ms:_ago(6),  witness:'The full thread',     deadline:'' },
@@ -624,6 +628,7 @@ const LINEZERO_USERS = [
   {
     id: 'lz_jack', name: 'Jack Hamwi', shame_points: 185, infraction_count: 3,
     badges: ['early_adopter','calendar_tetris'],
+    customTitle: 'Sloth running the DMV', customTitleColor: '#B45239',
     joined_at: _ago(28), last_infraction_title: 'Left Zoom Without Saying Goodbye', last_infraction_ts: _ago(2),
     infractions: [
       { id:'ijh1', user_id:'lz_jack', title:'Left Zoom Without Saying Goodbye',       points: 40, timestamp_ms:_ago(2),  witness:'Everyone, visibly',   deadline:'' },
@@ -634,6 +639,7 @@ const LINEZERO_USERS = [
   {
     id: 'lz_caroline', name: 'Caroline Mikhail', shame_points: 160, infraction_count: 2,
     badges: ['early_adopter','calendar_tetris'],
+    customTitle: 'Slower than Molasses', customTitleColor: '#C8A45C',
     joined_at: _ago(25), last_infraction_title: '"What Are the Deliverables?"', last_infraction_ts: _ago(8),
     infractions: [
       { id:'ic1', user_id:'lz_caroline', title:'"What Are the Deliverables?"',        points: 20, timestamp_ms:_ago(8),  witness:'The whole standup',   deadline:'' },
@@ -641,33 +647,36 @@ const LINEZERO_USERS = [
     ],
   },
   {
-    id: 'lz_raghav', name: 'Raghav Bhalla', shame_points: 130, infraction_count: 2,
+    id: 'lz_raghav', name: 'Raghav Bhalla', shame_points: 50, infraction_count: 1,
     badges: ['early_adopter'],
-    joined_at: _ago(22), last_infraction_title: 'Said "Let\'s Circle Back"', last_infraction_ts: _ago(10),
+    customTitle: "Anthropic didn't wait, good for now", customTitleColor: '#6B7A4F',
+    joined_at: _ago(22), last_infraction_title: 'Missed Deadline', last_infraction_ts: _ago(10),
     infractions: [
-      { id:'ir1', user_id:'lz_raghav', title:'Said "Let\'s Circle Back"',             points: 10, timestamp_ms:_ago(10), witness:'Mehmet',               deadline:'' },
-      { id:'ir2', user_id:'lz_raghav', title:'Missed Deadline',                       points: 50, timestamp_ms:_ago(24), witness:'Self-reported',        deadline:'' },
+      { id:'ir1', user_id:'lz_raghav', title:'Missed Deadline',                       points: 50, timestamp_ms:_ago(10), witness:'Self-reported',        deadline:'' },
     ],
   },
   {
     id: 'lz_daniela', name: 'Daniela Del Boccio', shame_points: 75, infraction_count: 1,
     badges: ['early_adopter'],
+    customTitle: 'Waaaaaiting for what??!', customTitleColor: '#D87654',
     joined_at: _ago(18), last_infraction_title: 'Used "Bandwidth" About a Human', last_infraction_ts: _ago(13),
     infractions: [
       { id:'id1', user_id:'lz_daniela', title:'Used "Bandwidth" About a Human',       points: 30, timestamp_ms:_ago(13), witness:'Jack',                 deadline:'' },
     ],
   },
   {
-    id: 'lz_rofaiel', name: 'Rofaiel Tadrous', shame_points: 45, infraction_count: 1,
+    id: 'lz_rofaiel', name: 'Rofaiel Tadrous', shame_points: 50, infraction_count: 1,
     badges: ['early_adopter'],
-    joined_at: _ago(14), last_infraction_title: 'Said "Ping Me"', last_infraction_ts: _ago(11),
+    customTitle: "Anthropic didn't wait, good for now", customTitleColor: '#6B7A4F',
+    joined_at: _ago(14), last_infraction_title: 'Missed Deadline', last_infraction_ts: _ago(11),
     infractions: [
-      { id:'irt1', user_id:'lz_rofaiel', title:'Said "Ping Me"',                      points: 15, timestamp_ms:_ago(11), witness:'Caroline',             deadline:'' },
+      { id:'irt1', user_id:'lz_rofaiel', title:'Missed Deadline',                     points: 50, timestamp_ms:_ago(11), witness:'Caroline',             deadline:'' },
     ],
   },
   {
     id: 'lz_greg', name: 'Greg Sugar', shame_points: 0, infraction_count: 0,
     badges: ['early_adopter'],
+    customTitle: 'Slower than Molasses', customTitleColor: '#C8A45C',
     joined_at: _ago(10), last_infraction_title: null, last_infraction_ts: null,
     infractions: [],
   },
@@ -772,9 +781,14 @@ async function doRegister() {
   }
 }
 
+function getUserTitle(user) {
+  if (user.customTitle) return { title: user.customTitle, color: user.customTitleColor || '#9A8E7B' };
+  return getShameTitle(user.shame_points);
+}
+
 function enterDemoMode() {
   state.demoMode = true;
-  state.users = LINEZERO_USERS.map(u => ({ ...u, infractions: [], badges: [...u.badges] }));
+  state.users = LINEZERO_USERS.map(u => ({ ...u, infractions: u.infractions.map(i => ({...i})), badges: [...u.badges] }));
   state.currentUser = state.users.find(u => u.id === 'lz_greg');
   saveSession({ token: 'demo', userId: 'lz_greg' });
   showMainApp();
@@ -825,7 +839,7 @@ function showMainApp() {
 function updateHeader() {
   const user = state.currentUser;
   if (!user) return;
-  const t = getShameTitle(user.shame_points);
+  const t = getUserTitle(user);
   document.getElementById('headerUserName').textContent = user.name;
   document.getElementById('headerShamePoints').textContent = `${user.shame_points} pts — ${t.title}`;
   const meta = document.getElementById('headerMeta');
@@ -852,7 +866,16 @@ function showSection(id) {
   document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('tab-active'));
   document.querySelector(`[data-tab="${id}"]`)?.classList.add('tab-active');
   if (id === 'wallOfShame')      renderLeaderboard();
-  if (id === 'submitInfraction') renderDemeritCatalog();
+  if (id === 'submitInfraction') {
+    renderDemeritCatalog();
+    const sel = document.getElementById('shameTarget');
+    if (sel && !sel.options.length) {
+      sel.innerHTML = state.users.map(u =>
+        `<option value="${u.id}">${escHtml(u.name)}${u.id === state.session?.userId ? ' (you)' : ''}</option>`
+      ).join('');
+      sel.value = state.session?.userId || '';
+    }
+  }
   if (id === 'achievements')     renderAchievements();
   if (id === 'dailyReport')      renderDailyReport();
   if (id === 'roastMode') {
@@ -873,7 +896,7 @@ function renderLeaderboard() {
     return;
   }
   container.innerHTML = state.users.map((user, i) => {
-    const t = getShameTitle(user.shame_points);
+    const t = getUserTitle(user);
     const isCurrent  = user.id === state.session?.userId;
     const isInfamous = (user.badges||[]).includes('reply_all_menace') || user.shame_points >= 500;
     const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `<span class="mono" style="font-size:12px;color:var(--ash);">#${i+1}</span>`;
@@ -907,6 +930,21 @@ function renderLeaderboard() {
 // ═══════════════════════════════════════════════════════════════════
 // SUBMIT INFRACTION
 // ═══════════════════════════════════════════════════════════════════
+
+function showShameForm(mode) {
+  showSection('submitInfraction');
+  const sel = document.getElementById('shameTarget');
+  if (!sel) return;
+  sel.innerHTML = state.users.map(u =>
+    `<option value="${u.id}">${escHtml(u.name)}${u.id === state.session?.userId ? ' (you)' : ''}</option>`
+  ).join('');
+  if (mode === 'other') {
+    const firstOther = state.users.find(u => u.id !== state.session?.userId);
+    if (firstOther) sel.value = firstOther.id;
+  } else {
+    sel.value = state.session?.userId || '';
+  }
+}
 
 function renderDemeritCatalog() {
   document.getElementById('demeritList').innerHTML = CONFIG.DEMERITS.map(d => `
@@ -945,36 +983,48 @@ async function submitCustomInfraction() {
 }
 
 async function addInfraction(infraction) {
-  const userId = state.session.userId;
+  const sel      = document.getElementById('shameTarget');
+  const targetId = sel?.value || state.session.userId;
   let result;
+
   if (state.demoMode) {
+    const target  = state.users.find(u => u.id === targetId) || state.currentUser;
     const pts     = Math.min(Math.max(parseInt(infraction.points, 10), 1), 10000);
-    const newTotal = (state.currentUser.shame_points || 0) + pts;
+    const newTotal = (target.shame_points || 0) + pts;
     const badges   = CONFIG.ACHIEVEMENTS.filter(a => newTotal >= a.triggerPoints).map(a => a.id);
     result = { id: 'demo_' + Date.now(), timestamp_ms: Date.now(), points: pts, new_total: newTotal, badges };
   } else {
-    result = await api('/users/' + userId + '/infractions', 'POST', infraction);
+    result = await api('/users/' + targetId + '/infractions', 'POST', infraction);
   }
-  if (!state.currentUser.infractions) state.currentUser.infractions = [];
-  state.currentUser.infractions.push({
-    id: result.id, user_id: userId,
+
+  const infrRecord = {
+    id: result.id, user_id: targetId,
     demerit_id: infraction.demeritId || null,
     title: infraction.title, points: result.points,
     timestamp_ms: result.timestamp_ms,
     witness: infraction.witness || '', deadline: infraction.deadline || '',
-  });
-  state.currentUser.shame_points = result.new_total;
-  state.currentUser.badges = result.badges;
-  const summary = state.users.find(u => u.id === userId);
-  if (summary) {
-    summary.shame_points = result.new_total;
-    summary.badges = result.badges;
-    summary.infraction_count = (summary.infraction_count || 0) + 1;
-    summary.last_infraction_title = infraction.title;
-    summary.last_infraction_ts = result.timestamp_ms;
+  };
+
+  const target = state.users.find(u => u.id === targetId);
+  if (target) {
+    if (!target.infractions) target.infractions = [];
+    target.infractions.push(infrRecord);
+    target.shame_points = result.new_total;
+    target.badges = result.badges;
+    target.infraction_count = (target.infraction_count || 0) + 1;
+    target.last_infraction_title = infraction.title;
+    target.last_infraction_ts = result.timestamp_ms;
   }
+
+  if (targetId === state.session.userId) {
+    if (!state.currentUser.infractions) state.currentUser.infractions = [];
+    state.currentUser.infractions.push(infrRecord);
+    state.currentUser.shame_points = result.new_total;
+    state.currentUser.badges = result.badges;
+    updateHeader();
+  }
+
   if (state.demoMode) state.users.sort((a, b) => b.shame_points - a.shame_points);
-  updateHeader();
   showPenanceModal(result.points);
 }
 
@@ -1016,7 +1066,7 @@ function renderDailyReport() {
   const user = state.currentUser;
   const container = document.getElementById('dailyReportCard');
   if (!user) return;
-  const t      = getShameTitle(user.shame_points);
+  const t      = getUserTitle(user);
   const report = fillTemplate(getRand(CONFIG.DAILY_REPORT_TEMPLATES), user);
   const today  = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
   const docId  = 'SHM-' + (Math.floor(Math.random()*90000)+10000);
@@ -1165,7 +1215,7 @@ function getShameTitle(pts) {
   return cur;
 }
 function fillTemplate(tmpl,user) {
-  const t=getShameTitle(user.shame_points);
+  const t=getUserTitle(user);
   const count = user.infractions ? user.infractions.length : (user.infraction_count || 0);
   return tmpl.replace(/{name}/g,user.name).replace(/{points}/g,user.shame_points)
              .replace(/{infractions}/g,count).replace(/{title}/g,t.title);
