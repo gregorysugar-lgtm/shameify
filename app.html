@@ -832,7 +832,12 @@ function updateHeader() {
   if (meta) meta.style.display = 'block';
 }
 
-initApp();
+if (new URL(location.href).searchParams.has('linezero')) {
+  history.replaceState(null, '', '/app.html');
+  enterDemoMode();
+} else {
+  initApp();
+}
 
 document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 document.getElementById('regPassword').addEventListener('keydown',   e => { if (e.key === 'Enter') doRegister(); });
