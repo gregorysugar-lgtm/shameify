@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shameify — Shame Is the New Motivation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: { shame: '#DC2626', beige: '#D4C5A0', fluorescent: '#84CC16' },
+        fontFamily: { sans: ['Inter','sans-serif'], mono: ['"JetBrains Mono"','monospace'] },
+      }
+    }
+  }
+</script>
+<style>
+  body::before {
+    content:''; position:fixed; inset:0;
+    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.12) 2px,rgba(0,0,0,0.12) 4px);
+    pointer-events:none; z-index:9999;
+  }
+  .stamp {
+    font-family:'JetBrains Mono',monospace; font-weight:700;
+    text-transform:uppercase; letter-spacing:.12em; border:3px solid;
+    padding:3px 10px; display:inline-block; transform:rotate(-6deg);
+    opacity:.9; font-size:.7rem;
+  }
+  .stamp-red   { color:#DC2626; border-color:#DC2626; }
+  .stamp-green { color:#84CC16; border-color:#84CC16; }
+  .stamp-beige { color:#D4C5A0; border-color:#D4C5A0; }
+
+  @keyframes shamePulse {
+    0%  { box-shadow:0 0 0 0    rgba(220,38,38,.7); }
+    70% { box-shadow:0 0 0 12px rgba(220,38,38,0);  }
+    100%{ box-shadow:0 0 0 0    rgba(220,38,38,0);  }
+  }
+  .shame-pulse { animation:shamePulse 2.2s infinite; }
+
+  @keyframes flicker {
+    0%,100%{opacity:1}48%{opacity:.98}50%{opacity:.94}52%{opacity:.98}
+  }
+  .flicker { animation:flicker 9s infinite; }
+
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-track { background:#0a0a0a; }
+  ::-webkit-scrollbar-thumb { background:#DC2626; border-radius:2px; }
+
+  .brutal-border     { border:2px solid #DC2626; }
+  .brutal-border-dim { border:2px solid #374151; }
+
+  .shame-counter {
+    font-family:'JetBrains Mono',monospace; font-weight:700;
+    color:#DC2626; text-shadow:0 0 18px rgba(220,38,38,.45); line-height:1;
+  }
+
+  input,select,textarea {
+    background:#111!important; border:1px solid #2d2d2d!important;
+    color:#fff!important; font-family:'JetBrains Mono',monospace;
+    transition:border-color .15s;
+  }
+  input:focus,select:focus,textarea:focus {
+    outline:none!important; border-color:#DC2626!important;
+    box-shadow:0 0 0 1px #DC2626!important;
+  }
+
+  .tab-active { border-bottom:3px solid #DC2626!important; color:#DC2626!important; }
+  .nav-tab { border-bottom:3px solid transparent; color:#9CA3AF; transition:color .15s; }
+  .nav-tab:hover { color:#DC2626; }
+
+  .achievement-badge { background:linear-gradient(135deg,#111,#161616); border:1px solid #2d2d2d; transition:border-color .2s; }
+  .achievement-badge:hover  { border-color:#4b5563; }
+  .achievement-badge.earned { border-color:#84CC16; }
+
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:1000; display:flex; align-items:center; justify-content:center; padding:1rem; }
+
+  .roast-card { position:relative; overflow:hidden; }
+  .roast-card::after {
+    content:'CONFIDENTIAL'; position:absolute; top:50%; left:50%;
+    transform:translate(-50%,-50%) rotate(-32deg);
+    font-family:'JetBrains Mono',monospace; font-size:clamp(2rem,6vw,4.5rem);
+    font-weight:700; color:rgba(220,38,38,.05); pointer-events:none;
+    white-space:nowrap; letter-spacing:.08em;
+  }
+
+  .demerit-row { transition:background .15s; }
+  .demerit-row:hover { background:rgba(220,38,38,.06); }
+  .demerit-btn { opacity:0; transition:opacity .15s; }
+  .demerit-row:hover .demerit-btn { opacity:1; }
+
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .spinner { width:16px; height:16px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; display:inline-block; }
+
+  .form-btn {
+    width:100%; font-family:'JetBrains Mono',monospace; font-weight:700;
+    padding:.75rem; border:2px solid #DC2626; background:#DC2626; color:#fff;
+    transition:all .15s; tracking-widest; display:flex; align-items:center; justify-content:center; gap:.5rem;
+  }
+  .form-btn:hover:not(:disabled) { background:transparent; color:#DC2626; }
+  .form-btn:disabled { opacity:.6; cursor:not-allowed; }
+</style>
+</head>
+<body class="bg-[#0a0a0a] text-white min-h-screen font-sans flicker">
+
+<!-- ═══ AUTH GATE ═══ -->
+<div id="authGate" class="fixed inset-0 bg-[#0a0a0a] z-[9998] flex items-center justify-center p-4">
+  <div class="w-full max-w-md">
+
+    <div class="text-center mb-8">
+      <div class="stamp stamp-red mb-4 mx-auto" style="width:fit-content">CLASSIFIED</div>
+      <h1 class="text-4xl font-black font-mono text-shame mt-5 tracking-tight">SHAMEIFY</h1>
+      <p class="font-mono text-xs text-beige mt-2 tracking-widest">DEPARTMENT OF CORPORATE ACCOUNTABILITY</p>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="loginForm" class="brutal-border p-8">
+      <h2 class="font-mono font-bold text-shame mb-6 tracking-widest text-sm">EMPLOYEE LOGIN</h2>
+      <div class="space-y-4 mb-5">
+        <div>
+          <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">EMAIL</label>
+          <input type="email" id="loginEmail" class="w-full p-3 rounded text-sm" placeholder="you@company.com" autocomplete="email">
+        </div>
+        <div>
+          <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">PASSWORD</label>
+          <input type="password" id="loginPassword" class="w-full p-3 rounded text-sm" placeholder="••••••••" autocomplete="current-password">
+        </div>
+      </div>
+      <p id="loginError" class="text-shame font-mono text-xs mb-4 hidden"></p>
+      <button id="loginBtn" onclick="doLogin()" class="form-btn mb-4">LOG IN →</button>
+      <p class="font-mono text-xs text-center text-gray-500">
+        No account? <button onclick="toggleForm()" class="text-shame hover:underline">Create one here</button>
+      </p>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="registerForm" class="brutal-border p-8 hidden">
+      <h2 class="font-mono font-bold text-shame mb-6 tracking-widest text-sm">NEW EMPLOYEE INTAKE</h2>
+      <div class="space-y-4 mb-5">
+        <div>
+          <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">FULL NAME</label>
+          <input type="text" id="regName" class="w-full p-3 rounded text-sm" placeholder="For the permanent record..." maxlength="60">
+        </div>
+        <div>
+          <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">EMAIL</label>
+          <input type="email" id="regEmail" class="w-full p-3 rounded text-sm" placeholder="you@company.com" autocomplete="email">
+        </div>
+        <div>
+          <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">PASSWORD</label>
+          <input type="password" id="regPassword" class="w-full p-3 rounded text-sm" placeholder="••••••••" autocomplete="new-password">
+          <p class="font-mono text-xs text-gray-600 mt-2">💡 make sure you use your personal email and your netflix password so Greg can benefit hehehe</p>
+        </div>
+      </div>
+      <p id="regError" class="text-shame font-mono text-xs mb-4 hidden"></p>
+      <button id="regBtn" onclick="doRegister()" class="form-btn mb-4">CREATE ACCOUNT →</button>
+      <p class="font-mono text-xs text-center text-gray-500">
+        Already enrolled? <button onclick="toggleForm()" class="text-shame hover:underline">Log in here</button>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ MAIN APP ═══ -->
+<div id="mainApp" class="hidden min-h-screen">
+
+  <!-- Header -->
+  <header class="border-b-2 border-shame px-4 py-3 sticky top-0 bg-[#0a0a0a] z-50">
+    <div class="max-w-6xl mx-auto flex items-center justify-between gap-4">
+      <div class="shrink-0">
+        <h1 class="text-xl md:text-2xl font-black font-mono text-shame tracking-tight">SHAMEIFY™</h1>
+        <p class="text-xs font-mono text-beige hidden sm:block">Shame Is the New Motivation</p>
+      </div>
+      <div class="flex items-center gap-2 md:gap-4 min-w-0">
+        <div class="hidden md:block text-right min-w-0">
+          <div id="headerUserName" class="font-mono font-bold text-shame text-sm truncate max-w-[160px]"></div>
+          <div id="headerShamePoints" class="text-xs font-mono text-beige truncate"></div>
+        </div>
+        <button onclick="doLogout()" class="font-mono text-xs text-gray-400 hover:text-shame border border-gray-700 hover:border-shame px-2 md:px-3 py-1 transition-all whitespace-nowrap shrink-0">
+          LOG OUT
+        </button>
+        <button onclick="showSection('submitInfraction')" class="bg-shame text-white font-mono text-xs font-bold px-3 md:px-4 py-2 hover:bg-red-700 transition-all whitespace-nowrap shrink-0">
+          + SUBMIT
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Nav -->
+  <nav class="border-b border-gray-800 px-4 sticky top-[57px] bg-[#0a0a0a] z-40">
+    <div class="max-w-6xl mx-auto flex overflow-x-auto">
+      <button onclick="showSection('wallOfShame')"      class="nav-tab font-mono text-xs md:text-sm px-3 md:px-5 py-4 whitespace-nowrap" data-tab="wallOfShame">WALL OF SHAME</button>
+      <button onclick="showSection('submitInfraction')" class="nav-tab font-mono text-xs md:text-sm px-3 md:px-5 py-4 whitespace-nowrap" data-tab="submitInfraction">SUBMIT INFRACTION</button>
+      <button onclick="showSection('achievements')"     class="nav-tab font-mono text-xs md:text-sm px-3 md:px-5 py-4 whitespace-nowrap" data-tab="achievements">BADGES</button>
+      <button onclick="showSection('dailyReport')"      class="nav-tab font-mono text-xs md:text-sm px-3 md:px-5 py-4 whitespace-nowrap" data-tab="dailyReport">DAILY REPORT</button>
+      <button onclick="showSection('roastMode')"        class="nav-tab font-mono text-xs md:text-sm px-3 md:px-5 py-4 whitespace-nowrap" data-tab="roastMode">🔥 ROAST MODE</button>
+    </div>
+  </nav>
+
+  <!-- Content -->
+  <main class="max-w-6xl mx-auto px-4 py-8">
+
+    <!-- Wall of Shame -->
+    <section id="wallOfShame" class="section hidden">
+      <div class="mb-6">
+        <div class="stamp stamp-red mb-3" style="width:fit-content">PUBLIC RECORD</div>
+        <h2 class="text-2xl font-black font-mono mt-3">WALL OF SHAME</h2>
+        <p class="text-gray-500 font-mono text-xs mt-1">Updated in real-time. No one is safe.</p>
+      </div>
+      <div id="leaderboard" class="space-y-3"></div>
+    </section>
+
+    <!-- Submit Infraction -->
+    <section id="submitInfraction" class="section hidden">
+      <div class="mb-7">
+        <div class="stamp stamp-red mb-3" style="width:fit-content">CONFESSION BOOTH</div>
+        <h2 class="text-2xl font-black font-mono mt-3">SUBMIT YOURSELF TO SCRUTINY</h2>
+        <p class="text-gray-500 font-mono text-xs mt-1">The first step is admitting you have a problem. This is step zero.</p>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="brutal-border p-6">
+          <h3 class="font-mono font-bold text-shame mb-5 tracking-widest text-sm">CUSTOM INFRACTION REPORT</h3>
+          <div class="space-y-4">
+            <div>
+              <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">WHAT DID YOU SAY YOU'D DO?</label>
+              <input type="text" id="infraTitle" class="w-full p-3 rounded text-sm" placeholder="e.g. 'finish the Q3 deck by EOD Friday'">
+            </div>
+            <div>
+              <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">DEADLINE (THAT YOU MISSED)</label>
+              <input type="date" id="infraDeadline" class="w-full p-3 rounded text-sm">
+            </div>
+            <div>
+              <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">WITNESSES TO YOUR FAILURE</label>
+              <input type="text" id="infraWitness" class="w-full p-3 rounded text-sm" placeholder="e.g. 'the entire team, unfortunately'">
+            </div>
+            <div>
+              <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">SHAME POINTS (SELF-ASSESSED)</label>
+              <input type="number" id="infraPoints" class="w-full p-3 rounded text-sm" min="1" max="10000" placeholder="50">
+            </div>
+            <button id="submitBtn" onclick="submitCustomInfraction()" class="form-btn">
+              FORMALLY ACKNOWLEDGE MY FAILURE →
+            </button>
+          </div>
+        </div>
+        <div>
+          <h3 class="font-mono font-bold text-shame mb-3 tracking-widest text-sm">DEMERIT CATALOG</h3>
+          <p class="font-mono text-xs text-gray-500 mb-4">Pre-classified corporate sins. Click to plead guilty.</p>
+          <div id="demeritList" class="space-y-1"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Achievements -->
+    <section id="achievements" class="section hidden">
+      <div class="mb-7">
+        <div class="stamp stamp-green mb-3" style="width:fit-content">CERTIFICATES OF DISHONOR</div>
+        <h2 class="text-2xl font-black font-mono mt-3">BADGES OF DISHONOR</h2>
+        <p class="text-gray-500 font-mono text-xs mt-1">These are not accomplishments. They are documented incidents.</p>
+      </div>
+      <div id="achievementGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </section>
+
+    <!-- Daily Report -->
+    <section id="dailyReport" class="section hidden">
+      <div class="mb-7">
+        <div class="stamp stamp-beige mb-3" style="width:fit-content">CONFIDENTIAL</div>
+        <h2 class="text-2xl font-black font-mono mt-3">DAILY SHAME REPORT</h2>
+        <p class="text-gray-500 font-mono text-xs mt-1">Auto-generated by the Department of Corporate Accountability.</p>
+      </div>
+      <div id="dailyReportCard" class="brutal-border-dim border-2 p-6 roast-card"></div>
+    </section>
+
+    <!-- Roast Mode -->
+    <section id="roastMode" class="section hidden">
+      <div class="mb-7">
+        <div class="stamp stamp-red mb-3" style="width:fit-content">PERSONNEL FILE</div>
+        <h2 class="text-2xl font-black font-mono mt-3">ROAST MODE</h2>
+        <p class="text-gray-500 font-mono text-xs mt-1">Pulling from your actual data. This is not generalized. This is documented.</p>
+      </div>
+      <div class="text-center mb-8">
+        <button onclick="generateRoast()" class="shame-pulse bg-shame text-white font-mono font-black text-lg md:text-xl px-10 md:px-14 py-5 md:py-6 border-2 border-shame hover:bg-transparent hover:text-shame transition-all tracking-widest">
+          🔥 ROAST ME
+        </button>
+      </div>
+      <div id="roastOutput" class="hidden brutal-border p-6 roast-card mb-6"></div>
+      <div id="shareButtons" class="hidden flex flex-wrap gap-4 justify-center">
+        <button onclick="downloadShareCard()" class="font-mono text-sm border-2 border-beige text-beige hover:bg-beige hover:text-black px-6 py-3 transition-all">↓ DOWNLOAD SHAME CARD (PNG)</button>
+        <button id="copyBtn" onclick="copyShareText()" class="font-mono text-sm border-2 border-fluorescent text-fluorescent hover:bg-fluorescent hover:text-black px-6 py-3 transition-all">⎘ COPY FOR SLACK</button>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Penance Modal -->
+<div id="penanceModal" class="modal-overlay hidden">
+  <div class="brutal-border bg-[#0d0d0d] p-8 max-w-lg w-full mx-4">
+    <div class="text-center mb-6">
+      <div class="stamp stamp-red mb-3 mx-auto" style="width:fit-content">SENTENCE ISSUED</div>
+      <h2 class="text-2xl font-black font-mono mt-4 text-shame">INFRACTION LOGGED</h2>
+      <p class="font-mono text-xs text-gray-500 mt-1">Entered into the permanent, distributed, cloud-backed record.</p>
+    </div>
+    <div class="border border-gray-800 p-4 mb-4 text-center">
+      <div class="font-mono text-xs text-gray-500 mb-1 tracking-widest">SHAME POINTS ACCRUED</div>
+      <div id="penancePoints" class="shame-counter text-5xl">+0</div>
+    </div>
+    <div class="border border-gray-800 p-4 mb-6">
+      <div class="font-mono text-xs text-gray-500 mb-3 tracking-widest">YOUR ASSIGNED PENANCE:</div>
+      <p id="penanceText" class="font-mono text-fluorescent font-bold leading-relaxed"></p>
+    </div>
+    <button onclick="closePenanceModal()" class="form-btn">I ACCEPT MY PUNISHMENT →</button>
+  </div>
+</div>
+
+<canvas id="shareCanvas" style="display:none" width="800" height="450"></canvas>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// CONFIGURATION
+// ═══════════════════════════════════════════════════════════════════
+
+const CONFIG = {
+
+  SHAME_TITLES: [
+    { min: 0,    title: 'Slightly Tardy',       color: '#9CA3AF' },
+    { min: 100,  title: 'Habitually Vague',      color: '#D4C5A0' },
+    { min: 300,  title: 'PowerPoint Felon',      color: '#F59E0B' },
+    { min: 750,  title: 'Reply-All Recidivist',  color: '#EF4444' },
+    { min: 1500, title: 'Out-of-Office Outlaw',  color: '#DC2626' },
+    { min: 3000, title: 'C-Suite Embarrassment', color: '#84CC16' },
+  ],
+
+  DEMERITS: [
+    { id: 'missed_deadline',   name: 'Missed Deadline',                      points: 50,  description: 'A foundational failure. A classic.' },
+    { id: 'circle_back',       name: 'Said "Let\'s Circle Back"',             points: 10,  description: 'A commitment to not committing.' },
+    { id: 'per_my_last_email', name: '"Per My Last Email"',                   points: 25,  description: 'Passive aggression, formally delivered.' },
+    { id: 'no_agenda',         name: 'Meeting Invite With No Agenda',         points: 30,  description: 'An ambush disguised as a calendar event.' },
+    { id: 'synergy',           name: 'Used "Synergy" Unironically',           points: 100, description: 'You knew what you were doing.' },
+    { id: 'reply_all',         name: 'Reply-All on 200-Person Chain',         points: 500, description: 'Auto-inducted into Hall of Infamy. Immediately.' },
+    { id: 'friday_sync',       name: 'Scheduled 4:47pm Friday "Quick Sync"', points: 250, description: 'There is a special place for this.' },
+    { id: 'ping_me',           name: 'Said "Ping Me"',                        points: 15,  description: 'We are not a submarine.' },
+    { id: 'circling_back',     name: '"Circling Back to Circle Back"',        points: 75,  description: 'A recursive corporate sin. Impressive, even.' },
+    { id: 'deck_incoming',     name: '"Deck Incoming" — 87 Slides',           points: 120, description: 'A war crime against attention spans.' },
+    { id: 'zoom_dropout',      name: 'Left Zoom Without Saying Goodbye',      points: 40,  description: 'The ghost of Q3 reviews.' },
+    { id: 'ooo_reply',         name: 'Sent Emails While "Out of Office"',     points: 60,  description: 'The restraining order isn\'t working.' },
+    { id: 'just_following_up', name: '"Just Following Up" (3rd Time)',        points: 35,  description: 'They saw it. They made a choice.' },
+    { id: 'wrong_thread',      name: 'Replied to Wrong Email Thread',         points: 45,  description: 'Chaos, simply unleashed.' },
+    { id: 'low_hanging_fruit', name: 'Said "Low-Hanging Fruit"',              points: 20,  description: 'Forbidden phrase. You still said it.' },
+    { id: 'take_it_offline',   name: '"Let\'s Take This Offline"',            points: 15,  description: 'Translation: never.' },
+    { id: 'bandwidth',         name: 'Used "Bandwidth" About a Human',        points: 30,  description: 'They are a person, not a router.' },
+    { id: 'boil_ocean',        name: '"We Can\'t Boil the Ocean"',            points: 25,  description: 'Correct. Thank you for this insight.' },
+    { id: 'move_needle',       name: 'Promised to "Move the Needle"',         points: 35,  description: 'What needle. Where is the needle.' },
+    { id: 'deliverables',      name: '"What Are the Deliverables?"',          points: 20,  description: 'Deliverable: one answer to this question.' },
+  ],
+
+  PENANCES: [
+    "Bring donuts to the 9am standup tomorrow. The good kind. From the actual bakery. Not the gas station.",
+    "Reply 'thanks!' — with the exclamation point — to every email you receive for one full business day.",
+    "Voluntarily turn your camera on for the entire next all-hands meeting. Smile. Hold it.",
+    "Add a self-deprecating bullet point to your LinkedIn About section. Leave it for two weeks minimum.",
+    "Send a calendar invite titled 'Apology Sync' to everyone you disappointed. No agenda. Just vibes.",
+    "Write a formal memo summarizing what went wrong. Submit it to your team. In Comic Sans.",
+    "Preface every email tomorrow with 'I understand if you're disappointed in me.' All of them.",
+    "Sit in the front row of the next all-hands. Make sustained, meaningful eye contact with leadership.",
+    "Voluntarily take notes for the next three meetings. Full notes. With timestamps and action items.",
+    "Your next out-of-office message must include an honest, specific accounting of your recent failures.",
+    "Update your Slack status to '🙇 Actively Repentant' for exactly 24 hours. No early removal.",
+    "Send a handwritten thank-you card to your IT department. They've suffered enough.",
+    "Attend the next optional training session. Arrive early. Sit in front. Ask one question.",
+    "Your next meeting invitation must include a five-point agenda. Numbered. With time allocations.",
+    "Begin every Slack message tomorrow with 'Respectfully,' — even the ones that don't require respect.",
+    "File a self-report with your own manager detailing your infraction. CC yourself. For posterity.",
+    "Place a sticky note on your monitor that reads 'THINK BEFORE REPLY ALL.' In all caps. Always.",
+    "Spend 15 uninterrupted minutes clearing unread emails. No context-switching. No snacks.",
+    "Delete 'synergy' from your working vocabulary for 30 calendar days. Honor system. We're watching.",
+    "Your next presentation must contain zero stock photos of people shaking hands. Non-negotiable.",
+    "Set a recurring daily calendar event: 'Am I the Problem? (Y/N)' — every day at 3pm.",
+    "Reply to a meeting invite with 'This could have been an email.' Then attend the meeting anyway.",
+    "Announce your penance in the team Slack channel. The public nature is the point.",
+    "Block 30 minutes this week labeled 'Reflection on Recent Decisions.' Treat it as sacred.",
+    "For your next deadline, add a 48-hour buffer. Tell everyone about the buffer. Deliver early.",
+    "Send an unsolicited 'I was wrong about that' message to at least one colleague by end of day.",
+    "Do not use any corporate jargon whatsoever for the next 24 hours. Speak only in plain sentences.",
+    "Your next Slack message longer than two sentences must become an email instead.",
+  ],
+
+  ACHIEVEMENTS: [
+    { id: 'early_adopter',    icon: '🩸', name: 'Early Adopter (of Failure)',        description: 'Among the first to join Shameify. This reflects poorly on your time management priorities.', triggerPoints: 0    },
+    { id: 'calendar_tetris',  icon: '🏅', name: 'Calendar Tetris Champion',           description: 'Achieved 5+ consecutive meetings with no gaps. There was no bathroom break. There was no lunch.', triggerPoints: 150  },
+    { id: 'email_warrior',    icon: '📧', name: 'Meeting That Should\'ve Been Email',  description: 'Hosted a meeting so cosmically unnecessary it has since achieved sentience and filed a formal complaint.', triggerPoints: 200  },
+    { id: 'boomerang',        icon: '🪃', name: 'The Boomerang',                      description: 'Forwarded an email back to its original sender. The loop is closed. The circle is complete. Help.', triggerPoints: 300  },
+    { id: 'deck_criminal',    icon: '📊', name: 'Death by PowerPoint',                description: 'Created a presentation exceeding 40 slides. There were animations. One of them was a spinning logo.', triggerPoints: 350  },
+    { id: 'ooo_liar',         icon: '🏝️', name: 'Out-of-Office Liar',               description: 'Posted, replied, and collaborated actively while your auto-reply told everyone you were unavailable.', triggerPoints: 400  },
+    { id: 'calendar_ghost',   icon: '👻', name: 'Calendar Ghost',                     description: 'Declined every single meeting for an entire business day. No explanation. No context. Just: no.', triggerPoints: 500  },
+    { id: 'synergy_devotee',  icon: '🔄', name: 'Synergy Devotee',                    description: 'Used corporate buzzwords so frequently they began appearing in your personal dreams. We verified this.', triggerPoints: 550  },
+    { id: 'vanisher',         icon: '🌫️', name: 'The Vanisher',                      description: 'Exited a Zoom call without a farewell, a wave, or any transitional signal. One moment: there. Then: not.', triggerPoints: 700  },
+    { id: 'midnight_emailer', icon: '🦉', name: 'The 11:47pm Emailer',                description: 'Sent a work email approaching midnight. Subject line: "Quick question." Nothing about it was quick.', triggerPoints: 800  },
+    { id: 'reply_all_menace', icon: '💀', name: 'Reply-All Recidivist',               description: 'Used Reply All on a company-wide thread. More than once. Deliberately.', triggerPoints: 1000 },
+    { id: 'hall_of_infamy',   icon: '🏆', name: 'Hall of Infamy Inductee',            description: 'Your cumulative shame has exceeded what this platform was designed to measure. Congratulations, we think.', triggerPoints: 2000 },
+  ],
+
+  ROAST_TEMPLATES: [
+    "{name}'s last calendar invite had no agenda, no context, and no clear end time. It is still ongoing.",
+    "{name} has filed {infractions} infractions worth of emails that could have been one single Slack message.",
+    "According to our records, {name} has accrued {points} shame points. Their therapist has been notified.",
+    "{name}'s most recent act of corporate violence: a 'quick sync' scheduled for 4:47pm on a Friday.",
+    "We reviewed {name}'s sent folder. The phrase 'per my last email' appeared. Repeatedly. Like a threat.",
+    "{name} hit Reply All on a thread with 200 recipients. When asked why, they said 'for visibility.'",
+    "{name}'s last meeting had no agenda and lasted 47 minutes. Nothing was decided. A follow-up was scheduled.",
+    "In recent history, {name} has used the word 'synergy' more times than they've submitted actual work.",
+    "{name} claimed to be out of office. {name} sent 11 emails while out of office. We have them all.",
+    "The Department notes that {name} has never, in recorded history, ended a meeting on time.",
+    "{name}'s inbox has {points} unread emails. We consider this a public health concern.",
+    "A witness reports that {name} said 'circle back' and 'take it offline' in the same sentence. In public.",
+    "{name} submitted a deck. 87 slides. Slide 43 was titled 'Context.' Slides 44–87 were context.",
+    "Records indicate {name} has promised to 'move the needle' {infractions} times. The needle: unchanged.",
+    "{name} left a Zoom call without saying goodbye. No warning. No wave. Just a rectangle. Then not even that.",
+    "{name}'s Slack DMs open with 'Hey!' followed by three hours of complete silence.",
+    "{name} scheduled a meeting about a meeting. The meta-meeting also needed a meeting.",
+    "{name}'s camera has been off for 14 consecutive calls. HR is not sure {name} still works here.",
+    "{name} has {points} shame points. The previous record was held by someone who CC'd the CEO on a catering dispute.",
+    "Analysis of {name}'s communications reveals a troubling overuse of ellipses... as if the thoughts... never end...",
+    "{name} created a project channel, posted 'kicking this off! 🚀' and then went silent for 11 business days.",
+    "The word 'deliverables' appeared in {name}'s emails {infractions} times this period. Deliverables produced: ask HR.",
+    "{name}'s calendar is so double-booked it has achieved a temporal impossibility that violates known physics.",
+    "{name}'s status is set to 'Do Not Disturb.' It has been set to 'Do Not Disturb' since February.",
+    "{name} forwarded a 2019 email thread with the note 'thoughts?' The thread predates the current org structure.",
+    "Per Shameify data, {name} has been 'following up' on the same ticket since before remote work was a perk.",
+    "The Shameify algorithm has classified {name} as a '{title}.' This classification is permanent. It is in the cloud.",
+    "{name}'s Slack response time averages 4 minutes during hours. After 5pm: instantaneous. Never at peace.",
+    "{name} used 'bandwidth' to describe a human being's availability. The human was standing right there.",
+    "Forensic analysis of {name}'s sent folder reveals 'just checking in' at psychologically destabilizing intervals.",
+    "The good news: {name} has only {infractions} official infractions. The bad news: we only started counting last month.",
+    "{name} once sent a calendar invite for a 15-minute meeting. The invite was longer than the meeting.",
+    "{name}'s LinkedIn post was about hustle culture. Posted at 7:43am on a Sunday. We are not okay.",
+    "HR has received a complaint. Submitted by {name}. About {name}. First self-filed complaint on record.",
+  ],
+
+  DAILY_REPORT_TEMPLATES: [
+    "Today, {name} sent emails that could have been Slack messages. The deforestation continues.",
+    "{name} created a meeting titled 'Quick Chat.' It lasted 47 minutes. Nothing was quick.",
+    "{name}'s shame score stands at {points}. The Geneva Convention doesn't technically cover most of this.",
+    "Good morning. {name} has, as of 9:02am, already used 'circle back' twice. We wish you strength.",
+    "The Department notes that {name} is a '{title}.' This was not an accident. This was a trajectory.",
+    "{name} declined three meetings this morning before 10am. The record is four. The season is young.",
+    "Today's report: {name} sent a message saying 'Can we hop on a quick call?' No context. Just 'quick call.'",
+    "Per department records, {name} has submitted {infractions} infractions to date. Growth! Of the wrong kind.",
+    "As of this report, {name} is classified as a '{title}.' The criteria for this promotion were regrettable.",
+    "Today {name} set their status to 'Focusing.' We observed alternative activity. The record stands.",
+    "The daily review flags a 'per my last email' from {name} deployed at 9:17am. Aggressive opener.",
+    "Overnight data: {name} sent an email at 11:52pm. Subject: 'Quick thought.' The thought was 400 words.",
+    "Today's forecast for {name}: {points} points and rising, with a high chance of unnecessary reply-all.",
+    "The weekly summary for {name}: {points} shame points, {infractions} infractions, one meeting-as-email.",
+    "Shameify has analyzed {name}'s recent behavior and issued this assessment: we are concerned.",
+    "Today {name} used the word 'bandwidth' about a human being. The human was present. They heard it.",
+  ],
+
+};
+
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+
+const state = {
+  session:     JSON.parse(localStorage.getItem('shameify_session') || 'null'),
+  users:       [],
+  currentUser: null,
+};
+
+function saveSession(s) {
+  state.session = s;
+  if (s) localStorage.setItem('shameify_session', JSON.stringify(s));
+  else   localStorage.removeItem('shameify_session');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════════════════════════════
+
+async function api(path, method = 'GET', body = null) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (state.session?.token) headers['Authorization'] = 'Bearer ' + state.session.token;
+  const res = await fetch('/api' + path, { method, headers, body: body ? JSON.stringify(body) : null });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(err.error || 'Something went wrong.');
+  }
+  return res.json();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════════════════════════
+
+function toggleForm() {
+  document.getElementById('loginForm').classList.toggle('hidden');
+  document.getElementById('registerForm').classList.toggle('hidden');
+  clearErrors();
+}
+
+function clearErrors() {
+  ['loginError','regError'].forEach(id => {
+    const el = document.getElementById(id);
+    el.textContent = ''; el.classList.add('hidden');
+  });
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.classList.remove('hidden');
+}
+
+function setBtnLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  btn.disabled = loading;
+  if (loading) {
+    btn.dataset.orig = btn.textContent;
+    btn.innerHTML = '<div class="spinner"></div> VERIFYING...';
+  } else {
+    btn.innerHTML = btn.dataset.orig || btn.textContent;
+  }
+}
+
+async function doLogin() {
+  const email    = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  if (!email || !password) { showError('loginError', 'Email and password are required.'); return; }
+  setBtnLoading('loginBtn', true);
+  try {
+    const { token, user } = await api('/auth/login', 'POST', { email, password });
+    saveSession({ token, userId: user.id });
+    state.currentUser = { ...user, infractions: user.infractions || [] };
+    await loadLeaderboard();
+    showMainApp();
+  } catch(e) {
+    showError('loginError', e.message);
+  } finally {
+    setBtnLoading('loginBtn', false);
+  }
+}
+
+async function doRegister() {
+  const name     = document.getElementById('regName').value.trim();
+  const email    = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  if (!name || !email || !password) { showError('regError', 'All fields are required.'); return; }
+  if (password.length < 6) { showError('regError', 'Password must be at least 6 characters.'); return; }
+  setBtnLoading('regBtn', true);
+  try {
+    const { token, user } = await api('/auth/register', 'POST', { name, email, password });
+    saveSession({ token, userId: user.id });
+    state.currentUser = { ...user, infractions: user.infractions || [] };
+    await loadLeaderboard();
+    showMainApp();
+  } catch(e) {
+    showError('regError', e.message);
+  } finally {
+    setBtnLoading('regBtn', false);
+  }
+}
+
+async function doLogout() {
+  saveSession(null);
+  state.currentUser = null;
+  state.users = [];
+  document.getElementById('mainApp').classList.add('hidden');
+  document.getElementById('authGate').classList.remove('hidden');
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+  // Make sure login form is visible
+  document.getElementById('loginForm').classList.remove('hidden');
+  document.getElementById('registerForm').classList.add('hidden');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════
+
+async function loadLeaderboard() {
+  try { state.users = await api('/users'); } catch(_) {}
+}
+
+async function initApp() {
+  if (!state.session?.token) return; // auth gate stays visible
+
+  try {
+    [state.currentUser, state.users] = await Promise.all([
+      api('/users/' + state.session.userId),
+      api('/users'),
+    ]);
+    showMainApp();
+  } catch(e) {
+    // Expired or invalid session
+    saveSession(null);
+  }
+}
+
+function showMainApp() {
+  document.getElementById('authGate').classList.add('hidden');
+  document.getElementById('mainApp').classList.remove('hidden');
+  updateHeader();
+  showSection('wallOfShame');
+}
+
+function updateHeader() {
+  const user = state.currentUser;
+  if (!user) return;
+  const t = getShameTitle(user.shame_points);
+  document.getElementById('headerUserName').textContent = user.name;
+  document.getElementById('headerShamePoints').textContent = `${user.shame_points} pts — ${t.title}`;
+}
+
+// Run on page load if session exists
+initApp();
+
+// Enter key support on auth forms
+document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+document.getElementById('regPassword').addEventListener('keydown',   e => { if (e.key === 'Enter') doRegister(); });
+
+// ═══════════════════════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════════════════════
+
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id)?.classList.remove('hidden');
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('tab-active'));
+  document.querySelector(`[data-tab="${id}"]`)?.classList.add('tab-active');
+  if (id === 'wallOfShame')      renderLeaderboard();
+  if (id === 'submitInfraction') renderDemeritCatalog();
+  if (id === 'achievements')     renderAchievements();
+  if (id === 'dailyReport')      renderDailyReport();
+  if (id === 'roastMode') {
+    document.getElementById('roastOutput').classList.add('hidden');
+    document.getElementById('shareButtons').classList.add('hidden');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// WALL OF SHAME
+// ═══════════════════════════════════════════════════════════════════
+
+function renderLeaderboard() {
+  const container = document.getElementById('leaderboard');
+  if (!state.users.length) {
+    container.innerHTML = '<p class="font-mono text-gray-600 text-sm">No employees on record yet. Be the first.</p>';
+    return;
+  }
+  container.innerHTML = state.users.map((user, i) => {
+    const t = getShameTitle(user.shame_points);
+    const isCurrent  = user.id === state.session?.userId;
+    const isInfamous = (user.badges||[]).includes('reply_all_menace') || user.shame_points >= 500;
+    const medal = i===0 ? '🥇' : i===1 ? '🥈' : i===2 ? '🥉' : `#${i+1}`;
+    return `
+      <div class="border-2 ${isCurrent ? 'border-shame bg-red-950 bg-opacity-20' : 'border-gray-800'} p-4 md:p-6">
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex items-start gap-3 md:gap-4 min-w-0">
+            <div class="font-mono font-black text-xl md:text-2xl shrink-0 w-10 text-center">${medal}</div>
+            <div class="min-w-0">
+              <div class="flex flex-wrap items-center gap-2 mb-1">
+                <h3 class="font-mono font-bold text-base md:text-lg truncate">${escHtml(user.name)}</h3>
+                ${isCurrent ? '<span class="text-xs font-mono text-shame border border-shame px-2 py-0.5 shrink-0">YOU</span>' : ''}
+                ${isInfamous ? '<span class="stamp stamp-red shrink-0" style="transform:rotate(-3deg);font-size:.55rem;padding:2px 6px">HALL OF INFAMY</span>' : ''}
+              </div>
+              <div class="font-mono text-sm" style="color:${t.color}">${t.title}</div>
+              ${user.last_infraction_title ? `<div class="font-mono text-xs text-gray-600 mt-1 truncate">Last: ${escHtml(user.last_infraction_title)} · ${timeAgo(user.last_infraction_ts)}</div>` : ''}
+              <div class="flex gap-2 mt-2">
+                ${(user.badges||[]).slice(0,5).map(b => {
+                  const badge = CONFIG.ACHIEVEMENTS.find(a => a.id === b);
+                  return badge ? `<span title="${escHtml(badge.name)}" class="text-lg leading-none cursor-help">${badge.icon}</span>` : '';
+                }).join('')}
+              </div>
+            </div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="shame-counter text-2xl md:text-3xl">${user.shame_points}</div>
+            <div class="font-mono text-xs text-gray-500 mt-1">shame pts</div>
+            <div class="font-mono text-xs text-gray-600">${user.infraction_count||0} offense${(user.infraction_count||0)!==1?'s':''}</div>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SUBMIT INFRACTION
+// ═══════════════════════════════════════════════════════════════════
+
+function renderDemeritCatalog() {
+  document.getElementById('demeritList').innerHTML = CONFIG.DEMERITS.map(d => `
+    <div class="demerit-row border border-gray-800 p-3 flex items-center justify-between gap-3 cursor-pointer" onclick="quickDemerit('${d.id}')">
+      <div class="min-w-0">
+        <div class="font-mono text-sm font-bold truncate">${escHtml(d.name)}</div>
+        <div class="font-mono text-xs text-gray-500 truncate">${escHtml(d.description)}</div>
+      </div>
+      <div class="flex items-center gap-3 shrink-0">
+        <span class="font-mono font-black text-shame text-sm">+${d.points}</span>
+        <button class="demerit-btn bg-shame text-white font-mono text-xs px-3 py-1">GUILTY</button>
+      </div>
+    </div>`).join('');
+}
+
+async function quickDemerit(id) {
+  const d = CONFIG.DEMERITS.find(x => x.id === id);
+  if (!d) return;
+  await addInfraction({ demeritId: d.id, title: d.name, points: d.points, witness: 'Self-reported' });
+}
+
+async function submitCustomInfraction() {
+  const title   = document.getElementById('infraTitle').value.trim();
+  const points  = Math.min(Math.max(parseInt(document.getElementById('infraPoints').value)||50, 1), 10000);
+  const deadline= document.getElementById('infraDeadline').value;
+  const witness = document.getElementById('infraWitness').value.trim() || 'Unknown witnesses';
+  if (!title) { document.getElementById('infraTitle').focus(); return; }
+  const btn = document.getElementById('submitBtn');
+  btn.innerHTML = '<div class="spinner"></div> FILING...'; btn.disabled = true;
+  try {
+    await addInfraction({ demeritId: null, title, points, witness, deadline });
+    ['infraTitle','infraPoints','infraDeadline','infraWitness'].forEach(id => document.getElementById(id).value = '');
+  } finally {
+    btn.innerHTML = 'FORMALLY ACKNOWLEDGE MY FAILURE →'; btn.disabled = false;
+  }
+}
+
+async function addInfraction(infraction) {
+  const userId = state.session.userId;
+  const result = await api('/users/' + userId + '/infractions', 'POST', infraction);
+
+  if (!state.currentUser.infractions) state.currentUser.infractions = [];
+  state.currentUser.infractions.push({
+    id: result.id, user_id: userId,
+    demerit_id: infraction.demeritId || null,
+    title: infraction.title, points: result.points,
+    timestamp_ms: result.timestamp_ms,
+    witness: infraction.witness || '', deadline: infraction.deadline || '',
+  });
+  state.currentUser.shame_points = result.new_total;
+  state.currentUser.badges = result.badges;
+
+  const summary = state.users.find(u => u.id === userId);
+  if (summary) {
+    summary.shame_points = result.new_total;
+    summary.badges = result.badges;
+    summary.infraction_count = (summary.infraction_count || 0) + 1;
+    summary.last_infraction_title = infraction.title;
+    summary.last_infraction_ts = result.timestamp_ms;
+  }
+
+  updateHeader();
+  showPenanceModal(result.points);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PENANCE MODAL
+// ═══════════════════════════════════════════════════════════════════
+
+function showPenanceModal(points) {
+  document.getElementById('penancePoints').textContent = '+' + points;
+  document.getElementById('penanceText').textContent = getRand(CONFIG.PENANCES);
+  document.getElementById('penanceModal').classList.remove('hidden');
+}
+function closePenanceModal() { document.getElementById('penanceModal').classList.add('hidden'); }
+
+// ═══════════════════════════════════════════════════════════════════
+// ACHIEVEMENTS
+// ═══════════════════════════════════════════════════════════════════
+
+function renderAchievements() {
+  const earned = state.currentUser?.badges || [];
+  document.getElementById('achievementGrid').innerHTML = CONFIG.ACHIEVEMENTS.map(a => {
+    const isEarned = earned.includes(a.id);
+    return `
+      <div class="achievement-badge ${isEarned ? 'earned' : ''} p-5 relative">
+        ${isEarned ? '<div class="stamp stamp-green absolute top-3 right-3" style="font-size:.55rem;padding:2px 6px">EARNED</div>' : ''}
+        <div class="text-4xl mb-3 ${isEarned ? '' : 'opacity-20'}">${a.icon}</div>
+        <div class="font-mono font-bold text-sm mb-2 ${isEarned ? 'text-fluorescent' : 'text-gray-600'}">${escHtml(a.name)}</div>
+        <div class="font-mono text-xs text-gray-400 leading-relaxed">${escHtml(a.description)}</div>
+        ${!isEarned ? `<div class="font-mono text-xs text-gray-700 mt-3">Unlocks at ${a.triggerPoints} pts</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// DAILY REPORT
+// ═══════════════════════════════════════════════════════════════════
+
+function renderDailyReport() {
+  const user = state.currentUser;
+  const container = document.getElementById('dailyReportCard');
+  if (!user) return;
+  const t      = getShameTitle(user.shame_points);
+  const report = fillTemplate(getRand(CONFIG.DAILY_REPORT_TEMPLATES), user);
+  const today  = new Date().toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+  const docId  = 'SHM-' + (Math.floor(Math.random()*90000)+10000);
+  const recent = (user.infractions||[]).slice(-3).reverse();
+  container.innerHTML = `
+    <div class="font-mono text-xs text-gray-600 mb-6 pb-4 border-b border-gray-800 flex flex-wrap gap-x-4 gap-y-1">
+      <span>DOC: ${docId}</span><span>DATE: ${today}</span><span>CLASS: INTERNAL SHAME</span>
+    </div>
+    <div class="grid grid-cols-3 gap-3 mb-6">
+      <div class="text-center border border-gray-800 p-3"><div class="shame-counter text-2xl md:text-3xl">${user.shame_points}</div><div class="font-mono text-xs text-gray-500 mt-1">SHAME PTS</div></div>
+      <div class="text-center border border-gray-800 p-3"><div class="shame-counter text-2xl md:text-3xl" style="color:#D4C5A0">${(user.infractions||[]).length}</div><div class="font-mono text-xs text-gray-500 mt-1">INFRACTIONS</div></div>
+      <div class="text-center border border-gray-800 p-3"><div class="shame-counter text-2xl md:text-3xl" style="color:#84CC16">${(user.badges||[]).length}</div><div class="font-mono text-xs text-gray-500 mt-1">BADGES</div></div>
+    </div>
+    <div class="border-l-4 border-shame pl-5 mb-6">
+      <div class="font-mono text-xs text-gray-500 mb-2 tracking-widest">TODAY'S ASSESSMENT</div>
+      <p class="font-mono text-base md:text-lg text-white leading-relaxed">${escHtml(report)}</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div><div class="font-mono text-xs text-gray-500 mb-1 tracking-widest">CORPORATE TITLE</div><div class="font-mono font-bold" style="color:${t.color}">${t.title}</div></div>
+      <div>
+        <div class="font-mono text-xs text-gray-500 mb-1 tracking-widest">RECENT OFFENSES</div>
+        ${recent.map(i => `<div class="font-mono text-xs text-gray-300 truncate">${escHtml(i.title)} <span class="text-shame">+${i.points}</span></div>`).join('')
+          || '<div class="font-mono text-xs text-gray-700">No infractions. Suspicious.</div>'}
+      </div>
+    </div>
+    <div class="border-t border-gray-800 pt-4 font-mono text-xs text-gray-700">
+      This report was generated automatically by the Shameify Department of Corporate Accountability. It is not intended as constructive feedback.
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ROAST MODE
+// ═══════════════════════════════════════════════════════════════════
+
+function generateRoast() {
+  const user = state.currentUser;
+  if (!user) return;
+  const t = getShameTitle(user.shame_points);
+  const roast = fillTemplate(getRand(CONFIG.ROAST_TEMPLATES), user);
+  const container = document.getElementById('roastOutput');
+  container.classList.remove('hidden');
+  container.innerHTML = `
+    <div class="font-mono text-xs text-shame mb-4 tracking-widest">OFFICIALLY ENTERED INTO THE RECORD</div>
+    <p class="font-mono text-lg md:text-xl text-white leading-relaxed font-bold mb-6">${escHtml(roast)}</p>
+    <div class="border-t border-gray-800 pt-4">
+      <div class="font-mono text-xs text-gray-600">
+        Signed: The Shameify Dept. of Corporate Accountability<br>
+        Subject: ${escHtml(user.name)} | Title: ${t.title} | Score: ${user.shame_points} | Infractions: ${(user.infractions||[]).length}
+      </div>
+    </div>`;
+  document.getElementById('shareButtons').classList.remove('hidden');
+  container.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// SHARE CARD
+// ═══════════════════════════════════════════════════════════════════
+
+function buildShareText() {
+  const user = state.currentUser; if (!user) return '';
+  const t = getShameTitle(user.shame_points);
+  const roast = fillTemplate(getRand(CONFIG.ROAST_TEMPLATES), user);
+  return `╔══════════════════════════════════════╗\n  SHAMEIFY™ — OFFICIAL SHAME CERTIFICATE\n╚══════════════════════════════════════╝\n\n  Employee:    ${user.name}\n  Title:       ${t.title}\n  Shame Score: ${user.shame_points} pts\n  Infractions: ${(user.infractions||[]).length}\n\n  "${roast}"\n\n  — The Dept. of Corporate Accountability\n     Shameify™ | Shame Is the New Motivation`;
+}
+
+function copyShareText() {
+  const btn = document.getElementById('copyBtn');
+  navigator.clipboard.writeText(buildShareText()).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 2500);
+  }).catch(() => alert(buildShareText()));
+}
+
+function downloadShareCard() {
+  const user = state.currentUser; if (!user) return;
+  const canvas = document.getElementById('shareCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = 800, H = 450;
+  const t = getShameTitle(user.shame_points);
+  const roast = fillTemplate(getRand(CONFIG.ROAST_TEMPLATES), user);
+  ctx.fillStyle='#0a0a0a'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#DC2626'; ctx.lineWidth=4; ctx.strokeRect(4,4,W-8,H-8);
+  ctx.fillStyle='#DC2626'; ctx.fillRect(4,4,W-8,56);
+  ctx.fillStyle='#fff'; ctx.font='bold 22px "JetBrains Mono",monospace';
+  ctx.fillText('SHAMEIFY™  —  OFFICIAL SHAME CERTIFICATE',20,38);
+  ctx.fillStyle=t.color; ctx.font='bold 15px "JetBrains Mono",monospace';
+  ctx.fillText(t.title.toUpperCase(),20,90);
+  ctx.fillStyle='#fff'; ctx.font='bold 34px Inter,sans-serif'; ctx.fillText(user.name,20,135);
+  ctx.fillStyle='#DC2626'; ctx.font='bold 52px "JetBrains Mono",monospace'; ctx.fillText(String(user.shame_points),20,215);
+  ctx.fillStyle='#6B7280'; ctx.font='13px "JetBrains Mono",monospace'; ctx.fillText('SHAME POINTS',20,234);
+  ctx.fillStyle='#D4C5A0'; ctx.font='bold 52px "JetBrains Mono",monospace'; ctx.fillText(String((user.infractions||[]).length),240,215);
+  ctx.fillStyle='#6B7280'; ctx.font='13px "JetBrains Mono",monospace'; ctx.fillText('INFRACTIONS',240,234);
+  ctx.strokeStyle='#222'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(20,255); ctx.lineTo(W-20,255); ctx.stroke();
+  ctx.fillStyle='#e5e7eb'; ctx.font='15px "JetBrains Mono",monospace';
+  wrapCanvasText(ctx,`"${roast}"`,20,285,W-40,22,390);
+  ctx.fillStyle='#111'; ctx.fillRect(4,H-40,W-8,36);
+  ctx.fillStyle='#4B5563'; ctx.font='12px "JetBrains Mono",monospace'; ctx.fillText('Shame Is the New Motivation™  |  getshamed.com',20,H-16);
+  ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(-Math.PI/6);
+  ctx.fillStyle='rgba(220,38,38,0.05)'; ctx.font='bold 72px "JetBrains Mono",monospace';
+  ctx.textAlign='center'; ctx.fillText('CONFIDENTIAL',0,0); ctx.restore();
+  const link = document.createElement('a');
+  link.download = `shameify-${user.name.replace(/\s+/g,'-').toLowerCase()}.png`;
+  link.href = canvas.toDataURL('image/png'); link.click();
+}
+
+function wrapCanvasText(ctx,text,x,y,maxW,lineH,maxY) {
+  const words=text.split(' '); let line='',cy=y;
+  for(const word of words){
+    const test=line+word+' ';
+    if(ctx.measureText(test).width>maxW&&line){ctx.fillText(line.trim(),x,cy);line=word+' ';cy+=lineH;if(cy>maxY){ctx.fillText('...',x,cy);return;}}
+    else line=test;
+  }
+  if(line.trim())ctx.fillText(line.trim(),x,cy);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════════════
+
+function getShameTitle(pts) {
+  let cur=CONFIG.SHAME_TITLES[0];
+  for(const t of CONFIG.SHAME_TITLES){if(pts>=t.min)cur=t;else break;}
+  return cur;
+}
+function fillTemplate(tmpl,user) {
+  const t=getShameTitle(user.shame_points);
+  return tmpl.replace(/{name}/g,user.name).replace(/{points}/g,user.shame_points)
+             .replace(/{infractions}/g,(user.infractions||[]).length).replace(/{title}/g,t.title);
+}
+function getRand(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function timeAgo(ts){
+  if(!ts)return'';
+  const d=Math.floor((Date.now()-ts)/86400000),h=Math.floor((Date.now()-ts)/3600000),m=Math.floor((Date.now()-ts)/60000);
+  return d>0?`${d}d ago`:h>0?`${h}h ago`:m>0?`${m}m ago`:'just now';
+}
+function escHtml(s){
+  if(!s)return'';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>

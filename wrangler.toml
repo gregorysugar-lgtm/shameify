@@ -5,4 +5,4 @@ compatibility_date = "2024-09-23"
 [[d1_databases]]
 binding      = "DB"
 database_name = "shameify-db"
-database_id  = "PASTE_YOUR_DATABASE_ID_HERE"
+database_id  = "26b115ee-1cb6-46f0-95be-79e74670f398"
