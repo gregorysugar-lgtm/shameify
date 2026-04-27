@@ -322,7 +322,7 @@ input[type="date"]{ color-scheme:light; }
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--line);background:rgba(255,253,247,0.5);">
           <div style="display:flex;align-items:center;gap:10px;">
             <span class="dot live"></span>
-            <span class="mono" style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;">Live · Department of Corporate Accountability</span>
+            <span class="mono" style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;">Live · The best of the worst!</span>
           </div>
         </div>
         <div id="leaderboard"></div>
@@ -422,13 +422,15 @@ input[type="date"]{ color-scheme:light; }
 
 <!-- LineZero Identity Picker -->
 <div id="identityModal" class="modal-overlay hidden" style="z-index:10000;align-items:center;">
-  <div class="card" style="padding:36px;max-width:580px;width:100%;max-height:90vh;overflow-y:auto;">
+  <div class="card" style="padding:36px;max-width:480px;width:100%;">
     <div style="text-align:center;margin-bottom:28px;">
       <span class="stamp stamp-coral" style="margin-bottom:16px;display:inline-flex;">LineZero</span>
       <h2 class="serif" style="font-size:40px;font-style:italic;color:var(--ink);margin-top:12px;">Who are you?</h2>
-      <p class="mono" style="font-size:11px;color:var(--ash);margin-top:6px;">Claim your identity. Your shame follows you across sessions.</p>
+      <p class="mono" style="font-size:11px;color:var(--ash);margin-top:6px;">Your shame follows you across sessions.</p>
     </div>
-    <div id="identityGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;"></div>
+    <input id="identityNameInput" type="text" placeholder="First Last" class="input" style="width:100%;text-align:center;font-size:18px;padding:14px;margin-bottom:12px;box-sizing:border-box;" onkeydown="if(event.key==='Enter')submitIdentityName()">
+    <div id="identityError" style="color:var(--coral-deep);font-size:12px;text-align:center;margin-bottom:12px;min-height:16px;font-family:'JetBrains Mono',monospace;"></div>
+    <button onclick="submitIdentityName()" class="btn coral full">Claim Identity →</button>
   </div>
 </div>
 
@@ -846,26 +848,32 @@ function getSavedIdentity() { return localStorage.getItem(LZ_ID_KEY); }
 function saveIdentity(userId) { localStorage.setItem(LZ_ID_KEY, userId); }
 
 function showIdentityPicker() {
-  const AVATAR_COLORS = [
-    'linear-gradient(135deg,#C8A45C,#B45239)',
-    'linear-gradient(135deg,#6B7A4F,#3E4A2F)',
-    'linear-gradient(135deg,#5B3A4A,#8B5A6A)',
-    'linear-gradient(135deg,#D87654,#B45239)',
-    'linear-gradient(135deg,#8B6F47,#5C4A2E)',
-  ];
-  const grid = document.getElementById('identityGrid');
-  grid.innerHTML = state.users.map((u, i) => {
-    const initials = u.name.split(' ').map(p => p[0]).join('').slice(0,2).toUpperCase();
-    const color = AVATAR_COLORS[i % AVATAR_COLORS.length];
-    const t = getUserTitle(u);
-    return `
-      <button onclick="claimIdentity('${u.id}')" style="text-align:center;padding:20px 12px;border:1px solid var(--line);border-radius:16px;background:#FBF7EC;cursor:pointer;font-family:'Geist',sans-serif;transition:all .15s;" onmouseover="this.style.borderColor='var(--coral)';this.style.background='rgba(216,118,84,0.06)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--line)';this.style.background='#FBF7EC';this.style.transform='none'">
-        <div style="width:44px;height:44px;border-radius:50%;background:${color};color:#fff;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;margin:0 auto 10px;">${initials}</div>
-        <div style="font-weight:500;font-size:13px;color:var(--ink);margin-bottom:4px;">${escHtml(u.name)}</div>
-        <div style="font-size:10px;color:${t.color};font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;">${escHtml(t.title)}</div>
-      </button>`;
-  }).join('');
+  document.getElementById('identityNameInput').value = '';
+  document.getElementById('identityError').textContent = '';
   document.getElementById('identityModal').classList.remove('hidden');
+  setTimeout(() => document.getElementById('identityNameInput').focus(), 100);
+}
+
+function submitIdentityName() {
+  const raw = document.getElementById('identityNameInput').value.trim();
+  if (!raw) return;
+  const normalized = raw.toLowerCase().replace(/\s+/g, ' ');
+  const match = state.users.find(u => u.name.toLowerCase() === normalized);
+  if (match) {
+    claimIdentity(match.id);
+  } else {
+    // No match — create a fresh identity
+    const slug = raw.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    const newId = 'lz_' + slug + '_' + Date.now();
+    const newUser = {
+      id: newId, name: raw, shame_points: 0, infraction_count: 0,
+      badges: ['early_adopter'], customTitle: null, customTitleColor: null,
+      joined_at: Date.now(), last_infraction_title: null, last_infraction_ts: null,
+      infractions: [],
+    };
+    state.users.push(newUser);
+    claimIdentity(newId);
+  }
 }
 
 function claimIdentity(userId) {
