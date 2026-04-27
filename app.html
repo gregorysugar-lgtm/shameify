@@ -379,7 +379,11 @@ input[type="date"]{ color-scheme:light; }
         <p class="mono" style="font-size:12px;color:var(--ash);">Pulling from your actual data. This is not generalized. This is documented.</p>
       </div>
       <div style="text-align:center;margin-bottom:36px;">
-        <button onclick="generateRoast()" class="btn coral shame-pulse" style="padding:20px 52px;font-size:18px;">🔥 Roast me</button>
+        <div style="margin-bottom:20px;">
+          <label style="display:inline-block;margin-bottom:8px;">Select your victim</label>
+          <select id="roastTarget" style="display:block;max-width:320px;margin:0 auto;text-align:center;border-radius:10px;padding:10px 14px;font-size:15px;"></select>
+        </div>
+        <button onclick="generateRoast()" class="btn coral shame-pulse" style="padding:20px 52px;font-size:18px;">🔥 Roast them</button>
       </div>
       <div id="roastOutput" class="card hidden roast-card" style="padding:32px;margin-bottom:24px;"></div>
       <div id="shareButtons" class="hidden">
@@ -560,18 +564,113 @@ const CONFIG = {
 // STATE
 // ═══════════════════════════════════════════════════════════════════
 
+const _ago = d => Date.now() - d * 864e5;
+
 const LINEZERO_USERS = [
-  { id: 'lz_caroline', name: 'Caroline Mikhail',    shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
-  { id: 'lz_daniela',  name: 'Daniela Del Boccio',  shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
-  { id: 'lz_george',   name: 'George Haddad',        shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
-  { id: 'lz_greg',     name: 'Greg Sugar',            shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
-  { id: 'lz_joy',      name: 'Joy Fajardo',           shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
-  { id: 'lz_mehmet',   name: 'Mehmet Akcagliya',      shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
-  { id: 'lz_michael',  name: 'Michael Baskhairoun',   shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
-  { id: 'lz_raghav',   name: 'Raghav Bhalla',         shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
-  { id: 'lz_rofaiel',  name: 'Rofaiel Tadrous',       shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
-  { id: 'lz_victoria', name: 'Victoria Duran',         shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
-  { id: 'lz_jack',     name: 'Jack Hamwi',             shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+  {
+    id: 'lz_george', name: 'George Haddad', shame_points: 675, infraction_count: 8,
+    badges: ['early_adopter','calendar_tetris','email_warrior','boomerang','deck_criminal','ooo_liar','calendar_ghost','synergy_devotee'],
+    joined_at: _ago(45), last_infraction_title: 'Reply-All on 200-Person Chain', last_infraction_ts: _ago(3),
+    infractions: [
+      { id:'ig1', user_id:'lz_george', title:'Reply-All on 200-Person Chain',        points:500, timestamp_ms:_ago(3),  witness:'Entire company',      deadline:'' },
+      { id:'ig2', user_id:'lz_george', title:'Used "Synergy" Unironically',           points:100, timestamp_ms:_ago(9),  witness:'Mehmet, Victoria',    deadline:'' },
+      { id:'ig3', user_id:'lz_george', title:'Missed Deadline',                       points: 50, timestamp_ms:_ago(16), witness:'The whole team',       deadline:'' },
+      { id:'ig4', user_id:'lz_george', title:'Meeting Invite With No Agenda',         points: 30, timestamp_ms:_ago(28), witness:'Self-reported',        deadline:'' },
+    ],
+  },
+  {
+    id: 'lz_joy', name: 'Joy Fajardo', shame_points: 480, infraction_count: 6,
+    badges: ['early_adopter','calendar_tetris','email_warrior','boomerang','deck_criminal','ooo_liar'],
+    joined_at: _ago(40), last_infraction_title: 'Sent Emails While "Out of Office"', last_infraction_ts: _ago(1),
+    infractions: [
+      { id:'ij1', user_id:'lz_joy', title:'Sent Emails While "Out of Office"',      points: 60, timestamp_ms:_ago(1),  witness:'Slack receipts',      deadline:'' },
+      { id:'ij2', user_id:'lz_joy', title:'"Circling Back to Circle Back"',          points: 75, timestamp_ms:_ago(7),  witness:'George',              deadline:'' },
+      { id:'ij3', user_id:'lz_joy', title:'"Deck Incoming" — 87 Slides',             points:120, timestamp_ms:_ago(14), witness:'Everyone on the call', deadline:'' },
+      { id:'ij4', user_id:'lz_joy', title:'Said "Let\'s Circle Back"',               points: 10, timestamp_ms:_ago(20), witness:'Self-reported',        deadline:'' },
+    ],
+  },
+  {
+    id: 'lz_mehmet', name: 'Mehmet Akcagliya', shame_points: 355, infraction_count: 4,
+    badges: ['early_adopter','calendar_tetris','email_warrior','boomerang','deck_criminal'],
+    joined_at: _ago(38), last_infraction_title: 'Scheduled 4:47pm Friday "Quick Sync"', last_infraction_ts: _ago(5),
+    infractions: [
+      { id:'im1', user_id:'lz_mehmet', title:'Scheduled 4:47pm Friday "Quick Sync"', points:250, timestamp_ms:_ago(5),  witness:'The team',            deadline:'' },
+      { id:'im2', user_id:'lz_mehmet', title:'"Per My Last Email"',                   points: 25, timestamp_ms:_ago(12), witness:'Joy',                 deadline:'' },
+      { id:'im3', user_id:'lz_mehmet', title:'Used "Bandwidth" About a Human',        points: 30, timestamp_ms:_ago(19), witness:'Victoria',             deadline:'' },
+      { id:'im4', user_id:'lz_mehmet', title:'Said "Let\'s Circle Back"',             points: 10, timestamp_ms:_ago(33), witness:'Self-reported',        deadline:'' },
+    ],
+  },
+  {
+    id: 'lz_victoria', name: 'Victoria Duran', shame_points: 290, infraction_count: 4,
+    badges: ['early_adopter','calendar_tetris','email_warrior'],
+    joined_at: _ago(35), last_infraction_title: '"Just Following Up" (3rd Time)', last_infraction_ts: _ago(4),
+    infractions: [
+      { id:'iv1', user_id:'lz_victoria', title:'"Just Following Up" (3rd Time)',      points: 35, timestamp_ms:_ago(4),  witness:'Michael',             deadline:'' },
+      { id:'iv2', user_id:'lz_victoria', title:'Missed Deadline',                     points: 50, timestamp_ms:_ago(11), witness:'Raghav, George',       deadline:'' },
+      { id:'iv3', user_id:'lz_victoria', title:'Said "Low-Hanging Fruit"',            points: 20, timestamp_ms:_ago(18), witness:'Self-reported',        deadline:'' },
+      { id:'iv4', user_id:'lz_victoria', title:'"Let\'s Take This Offline"',          points: 15, timestamp_ms:_ago(29), witness:'Caroline',             deadline:'' },
+    ],
+  },
+  {
+    id: 'lz_michael', name: 'Michael Baskhairoun', shame_points: 240, infraction_count: 3,
+    badges: ['early_adopter','calendar_tetris','email_warrior'],
+    joined_at: _ago(32), last_infraction_title: 'Replied to Wrong Email Thread', last_infraction_ts: _ago(6),
+    infractions: [
+      { id:'imb1', user_id:'lz_michael', title:'Replied to Wrong Email Thread',       points: 45, timestamp_ms:_ago(6),  witness:'The full thread',     deadline:'' },
+      { id:'imb2', user_id:'lz_michael', title:'Missed Deadline',                     points: 50, timestamp_ms:_ago(14), witness:'Joy',                 deadline:'' },
+      { id:'imb3', user_id:'lz_michael', title:'Meeting Invite With No Agenda',       points: 30, timestamp_ms:_ago(25), witness:'Self-reported',        deadline:'' },
+    ],
+  },
+  {
+    id: 'lz_jack', name: 'Jack Hamwi', shame_points: 185, infraction_count: 3,
+    badges: ['early_adopter','calendar_tetris'],
+    joined_at: _ago(28), last_infraction_title: 'Left Zoom Without Saying Goodbye', last_infraction_ts: _ago(2),
+    infractions: [
+      { id:'ijh1', user_id:'lz_jack', title:'Left Zoom Without Saying Goodbye',       points: 40, timestamp_ms:_ago(2),  witness:'Everyone, visibly',   deadline:'' },
+      { id:'ijh2', user_id:'lz_jack', title:'"We Can\'t Boil the Ocean"',             points: 25, timestamp_ms:_ago(10), witness:'Daniela',              deadline:'' },
+      { id:'ijh3', user_id:'lz_jack', title:'Said "Ping Me"',                         points: 15, timestamp_ms:_ago(21), witness:'Self-reported',        deadline:'' },
+    ],
+  },
+  {
+    id: 'lz_caroline', name: 'Caroline Mikhail', shame_points: 160, infraction_count: 2,
+    badges: ['early_adopter','calendar_tetris'],
+    joined_at: _ago(25), last_infraction_title: '"What Are the Deliverables?"', last_infraction_ts: _ago(8),
+    infractions: [
+      { id:'ic1', user_id:'lz_caroline', title:'"What Are the Deliverables?"',        points: 20, timestamp_ms:_ago(8),  witness:'The whole standup',   deadline:'' },
+      { id:'ic2', user_id:'lz_caroline', title:'Promised to "Move the Needle"',       points: 35, timestamp_ms:_ago(17), witness:'Self-reported',        deadline:'' },
+    ],
+  },
+  {
+    id: 'lz_raghav', name: 'Raghav Bhalla', shame_points: 130, infraction_count: 2,
+    badges: ['early_adopter'],
+    joined_at: _ago(22), last_infraction_title: 'Said "Let\'s Circle Back"', last_infraction_ts: _ago(10),
+    infractions: [
+      { id:'ir1', user_id:'lz_raghav', title:'Said "Let\'s Circle Back"',             points: 10, timestamp_ms:_ago(10), witness:'Mehmet',               deadline:'' },
+      { id:'ir2', user_id:'lz_raghav', title:'Missed Deadline',                       points: 50, timestamp_ms:_ago(24), witness:'Self-reported',        deadline:'' },
+    ],
+  },
+  {
+    id: 'lz_daniela', name: 'Daniela Del Boccio', shame_points: 75, infraction_count: 1,
+    badges: ['early_adopter'],
+    joined_at: _ago(18), last_infraction_title: 'Used "Bandwidth" About a Human', last_infraction_ts: _ago(13),
+    infractions: [
+      { id:'id1', user_id:'lz_daniela', title:'Used "Bandwidth" About a Human',       points: 30, timestamp_ms:_ago(13), witness:'Jack',                 deadline:'' },
+    ],
+  },
+  {
+    id: 'lz_rofaiel', name: 'Rofaiel Tadrous', shame_points: 45, infraction_count: 1,
+    badges: ['early_adopter'],
+    joined_at: _ago(14), last_infraction_title: 'Said "Ping Me"', last_infraction_ts: _ago(11),
+    infractions: [
+      { id:'irt1', user_id:'lz_rofaiel', title:'Said "Ping Me"',                      points: 15, timestamp_ms:_ago(11), witness:'Caroline',             deadline:'' },
+    ],
+  },
+  {
+    id: 'lz_greg', name: 'Greg Sugar', shame_points: 0, infraction_count: 0,
+    badges: ['early_adopter'],
+    joined_at: _ago(10), last_infraction_title: null, last_infraction_ts: null,
+    infractions: [],
+  },
 ];
 
 const state = {
@@ -752,6 +851,7 @@ function showSection(id) {
   if (id === 'achievements')     renderAchievements();
   if (id === 'dailyReport')      renderDailyReport();
   if (id === 'roastMode') {
+    renderRoastTargets();
     document.getElementById('roastOutput').classList.add('hidden');
     document.getElementById('shareButtons').classList.add('hidden');
   }
@@ -958,8 +1058,18 @@ function renderDailyReport() {
 // ROAST MODE
 // ═══════════════════════════════════════════════════════════════════
 
+function renderRoastTargets() {
+  const sel = document.getElementById('roastTarget');
+  if (!sel) return;
+  sel.innerHTML = state.users.map(u =>
+    `<option value="${u.id}"${u.id === state.session?.userId ? ' selected' : ''}>${escHtml(u.name)}${u.id === state.session?.userId ? ' (you)' : ''}</option>`
+  ).join('');
+}
+
 function generateRoast() {
-  const user = state.currentUser;
+  const sel    = document.getElementById('roastTarget');
+  const target = sel?.value ? state.users.find(u => u.id === sel.value) : null;
+  const user   = target || state.currentUser;
   if (!user) return;
   const t = getShameTitle(user.shame_points);
   const roast = fillTemplate(getRand(CONFIG.ROAST_TEMPLATES), user);
@@ -1051,8 +1161,9 @@ function getShameTitle(pts) {
 }
 function fillTemplate(tmpl,user) {
   const t=getShameTitle(user.shame_points);
+  const count = user.infractions ? user.infractions.length : (user.infraction_count || 0);
   return tmpl.replace(/{name}/g,user.name).replace(/{points}/g,user.shame_points)
-             .replace(/{infractions}/g,(user.infractions||[]).length).replace(/{title}/g,t.title);
+             .replace(/{infractions}/g,count).replace(/{title}/g,t.title);
 }
 function getRand(arr){return arr[Math.floor(Math.random()*arr.length)];}
 function timeAgo(ts){
