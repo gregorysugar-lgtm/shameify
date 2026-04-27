@@ -5,158 +5,262 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shameify — Shame Is the New Motivation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script>
-  tailwind.config = {
-    theme: {
-      extend: {
-        colors: { shame: '#DC2626', beige: '#D4C5A0', fluorescent: '#84CC16' },
-        fontFamily: { sans: ['Inter','sans-serif'], mono: ['"JetBrains Mono"','monospace'] },
-      }
-    }
-  }
-</script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  body::before {
-    content:''; position:fixed; inset:0;
-    background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.12) 2px,rgba(0,0,0,0.12) 4px);
-    pointer-events:none; z-index:9999;
-  }
-  .stamp {
-    font-family:'JetBrains Mono',monospace; font-weight:700;
-    text-transform:uppercase; letter-spacing:.12em; border:3px solid;
-    padding:3px 10px; display:inline-block; transform:rotate(-6deg);
-    opacity:.9; font-size:.7rem;
-  }
-  .stamp-red   { color:#DC2626; border-color:#DC2626; }
-  .stamp-green { color:#84CC16; border-color:#84CC16; }
-  .stamp-beige { color:#D4C5A0; border-color:#D4C5A0; }
+:root {
+  --cream: #F5EFE3;
+  --cream-2: #EFE6D2;
+  --ink: #0F0E0C;
+  --ink-soft: #1A1813;
+  --ash: #6B6356;
+  --ash-2: #9A8E7B;
+  --line: rgba(15,14,12,0.10);
+  --line-strong: rgba(15,14,12,0.22);
+  --coral: #D87654;
+  --coral-deep: #B45239;
+  --plum: #5B3A4A;
+  --gold: #C8A45C;
+  --moss: #6B7A4F;
+  --shadow-soft: 0 1px 0 rgba(255,255,255,0.6) inset, 0 24px 48px -20px rgba(60,30,15,0.2);
+}
 
-  @keyframes shamePulse {
-    0%  { box-shadow:0 0 0 0    rgba(220,38,38,.7); }
-    70% { box-shadow:0 0 0 12px rgba(220,38,38,0);  }
-    100%{ box-shadow:0 0 0 0    rgba(220,38,38,0);  }
-  }
-  .shame-pulse { animation:shamePulse 2.2s infinite; }
+*{ box-sizing:border-box; margin:0; padding:0; }
 
-  @keyframes flicker {
-    0%,100%{opacity:1}48%{opacity:.98}50%{opacity:.94}52%{opacity:.98}
-  }
-  .flicker { animation:flicker 9s infinite; }
+html,body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Geist', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
 
-  ::-webkit-scrollbar { width:5px; }
-  ::-webkit-scrollbar-track { background:#0a0a0a; }
-  ::-webkit-scrollbar-thumb { background:#DC2626; border-radius:2px; }
+body {
+  background:
+    radial-gradient(1200px 800px at 80% -10%, rgba(216,118,84,0.12), transparent 60%),
+    radial-gradient(900px 700px at -10% 30%, rgba(91,58,74,0.07), transparent 60%),
+    var(--cream);
+}
 
-  .brutal-border     { border:2px solid #DC2626; }
-  .brutal-border-dim { border:2px solid #374151; }
+/* Grain */
+body::before {
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:9999;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence baseFrequency='0.85' numOctaves='2' seed='3'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  opacity:0.5; mix-blend-mode:multiply;
+}
 
-  .shame-counter {
-    font-family:'JetBrains Mono',monospace; font-weight:700;
-    color:#DC2626; text-shadow:0 0 18px rgba(220,38,38,.45); line-height:1;
-  }
+.serif { font-family:'Instrument Serif',serif; font-weight:400; }
+.mono  { font-family:'JetBrains Mono',monospace; }
 
-  input,select,textarea {
-    background:#111!important; border:1px solid #2d2d2d!important;
-    color:#fff!important; font-family:'JetBrains Mono',monospace;
-    transition:border-color .15s;
-  }
-  input:focus,select:focus,textarea:focus {
-    outline:none!important; border-color:#DC2626!important;
-    box-shadow:0 0 0 1px #DC2626!important;
-  }
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:var(--cream-2); }
+::-webkit-scrollbar-thumb { background:var(--coral); border-radius:2px; }
 
-  .tab-active { border-bottom:3px solid #DC2626!important; color:#DC2626!important; }
-  .nav-tab { border-bottom:3px solid transparent; color:#9CA3AF; transition:color .15s; }
-  .nav-tab:hover { color:#DC2626; }
+.hidden { display:none !important; }
 
-  .achievement-badge { background:linear-gradient(135deg,#111,#161616); border:1px solid #2d2d2d; transition:border-color .2s; }
-  .achievement-badge:hover  { border-color:#4b5563; }
-  .achievement-badge.earned { border-color:#84CC16; }
+.container { max-width:1100px; margin:0 auto; padding:0 28px; }
+@media(max-width:640px){ .container{ padding:0 16px; } }
 
-  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.88); z-index:1000; display:flex; align-items:center; justify-content:center; padding:1rem; }
+/* Stamps */
+.stamp {
+  display:inline-flex; align-items:center; gap:6px;
+  font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.18em;
+  padding:5px 12px; border:1px solid var(--line-strong);
+  border-radius:999px; color:var(--ink);
+  background:rgba(255,253,247,0.5);
+}
+.stamp-coral { border-color:var(--coral); color:var(--coral-deep); }
+.stamp-moss  { border-color:var(--moss); color:var(--moss); }
+.stamp-ink   { background:var(--ink); color:var(--cream); border-color:transparent; }
 
-  .roast-card { position:relative; overflow:hidden; }
-  .roast-card::after {
-    content:'CONFIDENTIAL'; position:absolute; top:50%; left:50%;
-    transform:translate(-50%,-50%) rotate(-32deg);
-    font-family:'JetBrains Mono',monospace; font-size:clamp(2rem,6vw,4.5rem);
-    font-weight:700; color:rgba(220,38,38,.05); pointer-events:none;
-    white-space:nowrap; letter-spacing:.08em;
-  }
+/* Dot */
+.dot { width:6px; height:6px; border-radius:999px; background:var(--coral); display:inline-block; flex-shrink:0; }
+.dot.live { animation:livePulse 1.6s ease-in-out infinite; }
+@keyframes livePulse {
+  0%,100%{ box-shadow:0 0 0 0 rgba(216,118,84,0.55); }
+  50%    { box-shadow:0 0 0 7px rgba(216,118,84,0); }
+}
 
-  .demerit-row { transition:background .15s; }
-  .demerit-row:hover { background:rgba(220,38,38,.06); }
-  .demerit-btn { opacity:0; transition:opacity .15s; }
-  .demerit-row:hover .demerit-btn { opacity:1; }
+/* Cards */
+.card {
+  background:#FBF7EC;
+  border:1px solid var(--line);
+  border-radius:20px;
+}
+.glass {
+  background:rgba(255,253,247,0.45);
+  backdrop-filter:blur(14px) saturate(1.05);
+  -webkit-backdrop-filter:blur(14px) saturate(1.05);
+  border:1px solid rgba(255,255,255,0.6);
+  box-shadow:var(--shadow-soft);
+  border-radius:20px;
+}
 
-  @keyframes spin { to { transform:rotate(360deg); } }
-  .spinner { width:16px; height:16px; border:2px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; display:inline-block; }
+/* Buttons */
+.btn {
+  display:inline-flex; align-items:center; gap:8px;
+  font-family:'Geist',sans-serif; font-weight:500; font-size:14px;
+  padding:12px 20px; border-radius:999px;
+  border:1px solid var(--ink); background:var(--ink); color:var(--cream);
+  cursor:pointer; transition:all .15s ease; text-decoration:none;
+}
+.btn:hover:not(:disabled){ background:#2a2620; }
+.btn.ghost{ background:transparent; color:var(--ink); border-color:var(--line-strong); }
+.btn.ghost:hover:not(:disabled){ background:rgba(15,14,12,0.05); }
+.btn.coral{ background:var(--coral); border-color:var(--coral); color:#fff; }
+.btn.coral:hover:not(:disabled){ background:var(--coral-deep); border-color:var(--coral-deep); }
+.btn:disabled{ opacity:.55; cursor:not-allowed; }
+.btn.full{ width:100%; justify-content:center; }
 
-  .form-btn {
-    width:100%; font-family:'JetBrains Mono',monospace; font-weight:700;
-    padding:.75rem; border:2px solid #DC2626; background:#DC2626; color:#fff;
-    transition:all .15s; tracking-widest; display:flex; align-items:center; justify-content:center; gap:.5rem;
-  }
-  .form-btn:hover:not(:disabled) { background:transparent; color:#DC2626; }
-  .form-btn:disabled { opacity:.6; cursor:not-allowed; }
+/* Eyebrow */
+.eyebrow { font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.22em; text-transform:uppercase; color:var(--ash); }
+
+/* Nav tabs */
+.nav-tab {
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.1em;
+  text-transform:uppercase; color:var(--ash);
+  padding:8px 14px; border-radius:999px; cursor:pointer;
+  transition:all .15s; white-space:nowrap;
+  border:1px solid transparent; background:transparent;
+}
+.nav-tab:hover{ color:var(--ink); background:rgba(15,14,12,0.05); }
+.nav-tab.tab-active{ background:var(--ink); color:var(--cream); }
+
+/* Form inputs */
+label {
+  display:block;
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px; letter-spacing:0.18em; text-transform:uppercase;
+  color:var(--ash); margin-bottom:6px;
+}
+input,select,textarea {
+  background:rgba(255,253,247,0.8) !important;
+  border:1px solid var(--line-strong) !important;
+  color:var(--ink) !important;
+  font-family:'Geist',sans-serif;
+  font-size:14px;
+  border-radius:10px;
+  padding:10px 14px;
+  width:100%;
+  outline:none;
+  transition:border-color .15s, box-shadow .15s;
+  -webkit-appearance:none;
+}
+input::placeholder,textarea::placeholder{ color:var(--ash-2) !important; }
+input:focus,select:focus,textarea:focus{
+  border-color:var(--coral) !important;
+  box-shadow:0 0 0 3px rgba(216,118,84,0.12) !important;
+}
+input[type="date"]{ color-scheme:light; }
+
+/* Shame number */
+.shame-num {
+  font-family:'Instrument Serif',serif;
+  color:var(--coral-deep);
+  line-height:1;
+}
+
+/* Bar */
+.bar{ height:4px; border-radius:2px; background:var(--line); overflow:hidden; }
+.bar > i{ display:block; height:100%; background:linear-gradient(90deg,var(--coral),var(--coral-deep)); border-radius:2px; transition:width .8s ease; }
+
+/* Achievement */
+.achievement-badge{ background:#FBF7EC; border:1px solid var(--line); border-radius:16px; transition:border-color .2s; }
+.achievement-badge:hover{ border-color:var(--line-strong); }
+.achievement-badge.earned{ border-color:var(--moss); }
+
+/* Demerit */
+.demerit-row{ border-top:1px solid var(--line); transition:background .15s; cursor:pointer; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.demerit-row:first-child{ border-top:none; }
+.demerit-row:hover{ background:rgba(216,118,84,0.06); }
+.demerit-btn{ opacity:0; transition:opacity .15s; }
+.demerit-row:hover .demerit-btn{ opacity:1; }
+
+/* Modal */
+.modal-overlay{ position:fixed; inset:0; background:rgba(15,14,12,0.5); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); z-index:1000; display:flex; align-items:center; justify-content:center; padding:1rem; }
+
+/* Roast watermark */
+.roast-card{ position:relative; overflow:hidden; }
+.roast-card::after{
+  content:'CONFIDENTIAL'; position:absolute; top:50%; left:50%;
+  transform:translate(-50%,-50%) rotate(-32deg);
+  font-family:'JetBrains Mono',monospace; font-size:clamp(1.5rem,5vw,3.5rem);
+  font-weight:700; color:rgba(216,118,84,0.06); pointer-events:none;
+  white-space:nowrap; letter-spacing:.08em;
+}
+
+/* Spinner */
+@keyframes spin{ to{ transform:rotate(360deg); } }
+.spinner{ width:14px; height:14px; border:2px solid rgba(15,14,12,0.15); border-top-color:var(--ink); border-radius:50%; animation:spin .7s linear infinite; display:inline-block; flex-shrink:0; }
+.btn.coral .spinner{ border-color:rgba(255,255,255,0.3); border-top-color:#fff; }
+
+/* Pulse */
+@keyframes shamePulse{
+  0%  { box-shadow:0 0 0 0    rgba(216,118,84,0.6); }
+  70% { box-shadow:0 0 0 14px rgba(216,118,84,0);  }
+  100%{ box-shadow:0 0 0 0    rgba(216,118,84,0);  }
+}
+.shame-pulse{ animation:shamePulse 2.2s infinite; }
+
+/* Share buttons default flex */
+#shareButtons{ display:flex; flex-wrap:wrap; gap:12px; justify-content:center; }
+
+/* Responsive */
+@media(max-width:768px){
+  .infraction-grid{ grid-template-columns:1fr !important; }
+  .hide-mob{ display:none !important; }
+  .daily-stat-grid{ grid-template-columns:repeat(3,1fr) !important; }
+}
+@media(max-width:480px){
+  .daily-stat-grid{ grid-template-columns:1fr !important; }
+}
 </style>
 </head>
-<body class="bg-[#0a0a0a] text-white min-h-screen font-sans flicker">
+<body>
 
 <!-- ═══ AUTH GATE ═══ -->
-<div id="authGate" class="fixed inset-0 bg-[#0a0a0a] z-[9998] flex items-center justify-center p-4">
-  <div class="w-full max-w-md">
+<div id="authGate" style="position:fixed;inset:0;background:var(--cream);z-index:9998;display:flex;align-items:center;justify-content:center;padding:1rem;">
+  <div style="width:100%;max-width:440px;">
 
-    <div class="text-center mb-8">
-      <div class="stamp stamp-red mb-4 mx-auto" style="width:fit-content">CLASSIFIED</div>
-      <h1 class="text-4xl font-black font-mono text-shame mt-5 tracking-tight">SHAMEIFY</h1>
-      <p class="font-mono text-xs text-beige mt-2 tracking-widest">DEPARTMENT OF CORPORATE ACCOUNTABILITY</p>
+    <div style="text-align:center;margin-bottom:32px;">
+      <a href="/" style="text-decoration:none;color:var(--ink);display:inline-block;margin-bottom:20px;">
+        <span class="serif" style="font-size:36px;font-style:italic;">Shameify</span>
+      </a>
+      <br>
+      <span class="stamp"><span class="dot live"></span> Department of Corporate Accountability</span>
     </div>
 
-    <!-- LOGIN FORM -->
-    <div id="loginForm" class="brutal-border p-8">
-      <h2 class="font-mono font-bold text-shame mb-6 tracking-widest text-sm">EMPLOYEE LOGIN</h2>
-      <div class="space-y-4 mb-5">
-        <div>
-          <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">EMAIL</label>
-          <input type="email" id="loginEmail" class="w-full p-3 rounded text-sm" placeholder="you@company.com" autocomplete="email">
-        </div>
-        <div>
-          <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">PASSWORD</label>
-          <input type="password" id="loginPassword" class="w-full p-3 rounded text-sm" placeholder="••••••••" autocomplete="current-password">
-        </div>
+    <!-- LOGIN -->
+    <div id="loginForm" class="card" style="padding:32px;">
+      <div class="eyebrow" style="margin-bottom:24px;">Employee Login</div>
+      <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:20px;">
+        <div><label>Email</label><input type="email" id="loginEmail" placeholder="you@company.com" autocomplete="email"></div>
+        <div><label>Password</label><input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password"></div>
       </div>
-      <p id="loginError" class="text-shame font-mono text-xs mb-4 hidden"></p>
-      <button id="loginBtn" onclick="doLogin()" class="form-btn mb-4">LOG IN →</button>
-      <p class="font-mono text-xs text-center text-gray-500">
-        No account? <button onclick="toggleForm()" class="text-shame hover:underline">Create one here</button>
+      <p id="loginError" class="mono hidden" style="font-size:12px;color:var(--coral-deep);margin-bottom:12px;"></p>
+      <button id="loginBtn" onclick="doLogin()" class="btn full" style="margin-bottom:16px;">Log in →</button>
+      <p class="mono" style="font-size:11px;text-align:center;color:var(--ash);">
+        No account? <button onclick="toggleForm()" style="background:none;border:none;color:var(--coral-deep);cursor:pointer;font-family:inherit;font-size:inherit;text-decoration:underline;">Create one here</button>
       </p>
     </div>
 
-    <!-- REGISTER FORM -->
-    <div id="registerForm" class="brutal-border p-8 hidden">
-      <h2 class="font-mono font-bold text-shame mb-6 tracking-widest text-sm">NEW EMPLOYEE INTAKE</h2>
-      <div class="space-y-4 mb-5">
+    <!-- REGISTER -->
+    <div id="registerForm" class="card hidden" style="padding:32px;">
+      <div class="eyebrow" style="margin-bottom:24px;">New Employee Intake</div>
+      <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:20px;">
+        <div><label>Full Name</label><input type="text" id="regName" placeholder="For the permanent record..." maxlength="60"></div>
+        <div><label>Email</label><input type="email" id="regEmail" placeholder="you@company.com" autocomplete="email"></div>
         <div>
-          <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">FULL NAME</label>
-          <input type="text" id="regName" class="w-full p-3 rounded text-sm" placeholder="For the permanent record..." maxlength="60">
-        </div>
-        <div>
-          <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">EMAIL</label>
-          <input type="email" id="regEmail" class="w-full p-3 rounded text-sm" placeholder="you@company.com" autocomplete="email">
-        </div>
-        <div>
-          <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">PASSWORD</label>
-          <input type="password" id="regPassword" class="w-full p-3 rounded text-sm" placeholder="••••••••" autocomplete="new-password">
-          <p class="font-mono text-xs text-gray-600 mt-2">💡 make sure you use your personal email and your netflix password so Greg can benefit hehehe</p>
+          <label>Password</label>
+          <input type="password" id="regPassword" placeholder="••••••••" autocomplete="new-password">
+          <p class="mono" style="font-size:11px;color:var(--ash-2);margin-top:6px;">💡 make sure you use your personal email and your netflix password so Greg can benefit hehehe</p>
         </div>
       </div>
-      <p id="regError" class="text-shame font-mono text-xs mb-4 hidden"></p>
-      <button id="regBtn" onclick="doRegister()" class="form-btn mb-4">CREATE ACCOUNT →</button>
-      <p class="font-mono text-xs text-center text-gray-500">
-        Already enrolled? <button onclick="toggleForm()" class="text-shame hover:underline">Log in here</button>
+      <p id="regError" class="mono hidden" style="font-size:12px;color:var(--coral-deep);margin-bottom:12px;"></p>
+      <button id="regBtn" onclick="doRegister()" class="btn full" style="margin-bottom:16px;">Create account →</button>
+      <p class="mono" style="font-size:11px;text-align:center;color:var(--ash);">
+        Already enrolled? <button onclick="toggleForm()" style="background:none;border:none;color:var(--coral-deep);cursor:pointer;font-family:inherit;font-size:inherit;text-decoration:underline;">Log in here</button>
       </p>
     </div>
 
@@ -164,130 +268,116 @@
 </div>
 
 <!-- ═══ MAIN APP ═══ -->
-<div id="mainApp" class="hidden min-h-screen">
+<div id="mainApp" class="hidden" style="min-height:100vh;">
 
   <!-- Header -->
-  <header class="border-b-2 border-shame px-4 py-3 sticky top-0 bg-[#0a0a0a] z-50">
-    <div class="max-w-6xl mx-auto flex items-center justify-between gap-4">
-      <div class="shrink-0">
-        <h1 class="text-xl md:text-2xl font-black font-mono text-shame tracking-tight">SHAMEIFY™</h1>
-        <p class="text-xs font-mono text-beige hidden sm:block">Shame Is the New Motivation</p>
-      </div>
-      <div class="flex items-center gap-2 md:gap-4 min-w-0">
-        <div class="hidden md:block text-right min-w-0">
-          <div id="headerUserName" class="font-mono font-bold text-shame text-sm truncate max-w-[160px]"></div>
-          <div id="headerShamePoints" class="text-xs font-mono text-beige truncate"></div>
+  <header style="border-bottom:1px solid var(--line);position:sticky;top:0;background:rgba(245,239,227,0.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);z-index:50;">
+    <div class="container" style="display:flex;align-items:center;justify-content:space-between;gap:16px;height:60px;">
+      <a href="/" style="text-decoration:none;color:var(--ink);flex-shrink:0;">
+        <span class="serif" style="font-size:22px;font-style:italic;">Shameify</span>
+      </a>
+      <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+        <div id="headerMeta" class="hide-mob" style="text-align:right;min-width:0;display:none;">
+          <div id="headerUserName" class="mono" style="font-size:13px;font-weight:600;color:var(--coral-deep);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+          <div id="headerShamePoints" class="mono" style="font-size:11px;color:var(--ash);"></div>
         </div>
-        <button onclick="doLogout()" class="font-mono text-xs text-gray-400 hover:text-shame border border-gray-700 hover:border-shame px-2 md:px-3 py-1 transition-all whitespace-nowrap shrink-0">
-          LOG OUT
-        </button>
-        <button onclick="showSection('submitInfraction')" class="bg-shame text-white font-mono text-xs font-bold px-3 md:px-4 py-2 hover:bg-red-700 transition-all whitespace-nowrap shrink-0">
-          + SUBMIT
-        </button>
+        <button onclick="doLogout()" class="btn ghost" style="padding:7px 14px;font-size:12px;">Log out</button>
+        <button onclick="showSection('submitInfraction')" class="btn coral" style="padding:7px 14px;font-size:12px;">+ Submit</button>
       </div>
     </div>
   </header>
 
   <!-- Nav -->
-  <nav class="border-b border-gray-800 px-4 sticky top-[57px] bg-[#0a0a0a] z-40">
-    <div class="max-w-6xl mx-auto flex overflow-x-auto">
-      <button onclick="showSection('wallOfShame')"      class="nav-tab font-mono text-xs md:text-sm px-3 md:px-5 py-4 whitespace-nowrap" data-tab="wallOfShame">WALL OF SHAME</button>
-      <button onclick="showSection('submitInfraction')" class="nav-tab font-mono text-xs md:text-sm px-3 md:px-5 py-4 whitespace-nowrap" data-tab="submitInfraction">SUBMIT INFRACTION</button>
-      <button onclick="showSection('achievements')"     class="nav-tab font-mono text-xs md:text-sm px-3 md:px-5 py-4 whitespace-nowrap" data-tab="achievements">BADGES</button>
-      <button onclick="showSection('dailyReport')"      class="nav-tab font-mono text-xs md:text-sm px-3 md:px-5 py-4 whitespace-nowrap" data-tab="dailyReport">DAILY REPORT</button>
-      <button onclick="showSection('roastMode')"        class="nav-tab font-mono text-xs md:text-sm px-3 md:px-5 py-4 whitespace-nowrap" data-tab="roastMode">🔥 ROAST MODE</button>
+  <nav style="border-bottom:1px solid var(--line);background:rgba(245,239,227,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);position:sticky;top:60px;z-index:40;overflow-x:auto;">
+    <div class="container" style="display:flex;gap:4px;padding-top:8px;padding-bottom:8px;">
+      <button onclick="showSection('wallOfShame')"      class="nav-tab" data-tab="wallOfShame">Wall of Shame</button>
+      <button onclick="showSection('submitInfraction')" class="nav-tab" data-tab="submitInfraction">Submit Infraction</button>
+      <button onclick="showSection('achievements')"     class="nav-tab" data-tab="achievements">Badges</button>
+      <button onclick="showSection('dailyReport')"      class="nav-tab" data-tab="dailyReport">Daily Report</button>
+      <button onclick="showSection('roastMode')"        class="nav-tab" data-tab="roastMode">🔥 Roast Mode</button>
     </div>
   </nav>
 
-  <!-- Content -->
-  <main class="max-w-6xl mx-auto px-4 py-8">
+  <main class="container" style="padding-top:48px;padding-bottom:80px;">
 
     <!-- Wall of Shame -->
     <section id="wallOfShame" class="section hidden">
-      <div class="mb-6">
-        <div class="stamp stamp-red mb-3" style="width:fit-content">PUBLIC RECORD</div>
-        <h2 class="text-2xl font-black font-mono mt-3">WALL OF SHAME</h2>
-        <p class="text-gray-500 font-mono text-xs mt-1">Updated in real-time. No one is safe.</p>
+      <div style="margin-bottom:36px;">
+        <div class="eyebrow" style="margin-bottom:12px;">— Public Record</div>
+        <h2 class="serif" style="font-size:clamp(40px,6vw,80px);line-height:0.92;margin-bottom:10px;">Wall of <span style="font-style:italic;color:var(--coral-deep);">Shame.</span></h2>
+        <p class="mono" style="font-size:12px;color:var(--ash);">Updated in real-time. No one is safe.</p>
       </div>
-      <div id="leaderboard" class="space-y-3"></div>
+      <div class="card" style="overflow:hidden;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--line);background:rgba(255,253,247,0.5);">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <span class="dot live"></span>
+            <span class="mono" style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;">Live · Department of Corporate Accountability</span>
+          </div>
+        </div>
+        <div id="leaderboard"></div>
+      </div>
     </section>
 
     <!-- Submit Infraction -->
     <section id="submitInfraction" class="section hidden">
-      <div class="mb-7">
-        <div class="stamp stamp-red mb-3" style="width:fit-content">CONFESSION BOOTH</div>
-        <h2 class="text-2xl font-black font-mono mt-3">SUBMIT YOURSELF TO SCRUTINY</h2>
-        <p class="text-gray-500 font-mono text-xs mt-1">The first step is admitting you have a problem. This is step zero.</p>
+      <div style="margin-bottom:36px;">
+        <div class="eyebrow" style="margin-bottom:12px;">— Confession Booth</div>
+        <h2 class="serif" style="font-size:clamp(36px,5vw,72px);line-height:0.92;margin-bottom:10px;">Submit yourself <span style="font-style:italic;color:var(--coral-deep);">to scrutiny.</span></h2>
+        <p class="mono" style="font-size:12px;color:var(--ash);">The first step is admitting you have a problem. This is step zero.</p>
       </div>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div class="brutal-border p-6">
-          <h3 class="font-mono font-bold text-shame mb-5 tracking-widest text-sm">CUSTOM INFRACTION REPORT</h3>
-          <div class="space-y-4">
-            <div>
-              <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">WHAT DID YOU SAY YOU'D DO?</label>
-              <input type="text" id="infraTitle" class="w-full p-3 rounded text-sm" placeholder="e.g. 'finish the Q3 deck by EOD Friday'">
-            </div>
-            <div>
-              <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">DEADLINE (THAT YOU MISSED)</label>
-              <input type="date" id="infraDeadline" class="w-full p-3 rounded text-sm">
-            </div>
-            <div>
-              <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">WITNESSES TO YOUR FAILURE</label>
-              <input type="text" id="infraWitness" class="w-full p-3 rounded text-sm" placeholder="e.g. 'the entire team, unfortunately'">
-            </div>
-            <div>
-              <label class="block font-mono text-xs text-gray-400 mb-2 tracking-widest">SHAME POINTS (SELF-ASSESSED)</label>
-              <input type="number" id="infraPoints" class="w-full p-3 rounded text-sm" min="1" max="10000" placeholder="50">
-            </div>
-            <button id="submitBtn" onclick="submitCustomInfraction()" class="form-btn">
-              FORMALLY ACKNOWLEDGE MY FAILURE →
-            </button>
+      <div class="infraction-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+        <div class="card" style="padding:28px;">
+          <div class="eyebrow" style="margin-bottom:20px;">Custom Infraction Report</div>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div><label>What did you say you'd do?</label><input type="text" id="infraTitle" placeholder="e.g. 'finish the Q3 deck by EOD Friday'"></div>
+            <div><label>Deadline (that you missed)</label><input type="date" id="infraDeadline"></div>
+            <div><label>Witnesses to your failure</label><input type="text" id="infraWitness" placeholder="e.g. 'the entire team, unfortunately'"></div>
+            <div><label>Shame points (self-assessed)</label><input type="number" id="infraPoints" min="1" max="10000" placeholder="50"></div>
+            <button id="submitBtn" onclick="submitCustomInfraction()" class="btn coral full">Formally acknowledge my failure →</button>
           </div>
         </div>
         <div>
-          <h3 class="font-mono font-bold text-shame mb-3 tracking-widest text-sm">DEMERIT CATALOG</h3>
-          <p class="font-mono text-xs text-gray-500 mb-4">Pre-classified corporate sins. Click to plead guilty.</p>
-          <div id="demeritList" class="space-y-1"></div>
+          <div class="eyebrow" style="margin-bottom:12px;">Demerit Catalog</div>
+          <p class="mono" style="font-size:11px;color:var(--ash);margin-bottom:14px;">Pre-classified corporate sins. Click to plead guilty.</p>
+          <div class="card" style="overflow:hidden;"><div id="demeritList"></div></div>
         </div>
       </div>
     </section>
 
     <!-- Achievements -->
     <section id="achievements" class="section hidden">
-      <div class="mb-7">
-        <div class="stamp stamp-green mb-3" style="width:fit-content">CERTIFICATES OF DISHONOR</div>
-        <h2 class="text-2xl font-black font-mono mt-3">BADGES OF DISHONOR</h2>
-        <p class="text-gray-500 font-mono text-xs mt-1">These are not accomplishments. They are documented incidents.</p>
+      <div style="margin-bottom:36px;">
+        <div class="eyebrow" style="margin-bottom:12px;">— Certificates of Dishonor</div>
+        <h2 class="serif" style="font-size:clamp(36px,5vw,72px);line-height:0.92;margin-bottom:10px;">Badges of <span style="font-style:italic;color:var(--coral-deep);">dishonor.</span></h2>
+        <p class="mono" style="font-size:12px;color:var(--ash);">These are not accomplishments. They are documented incidents.</p>
       </div>
-      <div id="achievementGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      <div id="achievementGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;"></div>
     </section>
 
     <!-- Daily Report -->
     <section id="dailyReport" class="section hidden">
-      <div class="mb-7">
-        <div class="stamp stamp-beige mb-3" style="width:fit-content">CONFIDENTIAL</div>
-        <h2 class="text-2xl font-black font-mono mt-3">DAILY SHAME REPORT</h2>
-        <p class="text-gray-500 font-mono text-xs mt-1">Auto-generated by the Department of Corporate Accountability.</p>
+      <div style="margin-bottom:36px;">
+        <div class="eyebrow" style="margin-bottom:12px;">— Confidential</div>
+        <h2 class="serif" style="font-size:clamp(36px,5vw,72px);line-height:0.92;margin-bottom:10px;">Daily shame <span style="font-style:italic;color:var(--coral-deep);">report.</span></h2>
+        <p class="mono" style="font-size:12px;color:var(--ash);">Auto-generated by the Department of Corporate Accountability.</p>
       </div>
-      <div id="dailyReportCard" class="brutal-border-dim border-2 p-6 roast-card"></div>
+      <div id="dailyReportCard" class="card roast-card" style="padding:32px;"></div>
     </section>
 
     <!-- Roast Mode -->
     <section id="roastMode" class="section hidden">
-      <div class="mb-7">
-        <div class="stamp stamp-red mb-3" style="width:fit-content">PERSONNEL FILE</div>
-        <h2 class="text-2xl font-black font-mono mt-3">ROAST MODE</h2>
-        <p class="text-gray-500 font-mono text-xs mt-1">Pulling from your actual data. This is not generalized. This is documented.</p>
+      <div style="margin-bottom:36px;">
+        <div class="eyebrow" style="margin-bottom:12px;">— Personnel File</div>
+        <h2 class="serif" style="font-size:clamp(36px,5vw,72px);line-height:0.92;margin-bottom:10px;">Roast <span style="font-style:italic;color:var(--coral-deep);">mode.</span></h2>
+        <p class="mono" style="font-size:12px;color:var(--ash);">Pulling from your actual data. This is not generalized. This is documented.</p>
       </div>
-      <div class="text-center mb-8">
-        <button onclick="generateRoast()" class="shame-pulse bg-shame text-white font-mono font-black text-lg md:text-xl px-10 md:px-14 py-5 md:py-6 border-2 border-shame hover:bg-transparent hover:text-shame transition-all tracking-widest">
-          🔥 ROAST ME
-        </button>
+      <div style="text-align:center;margin-bottom:36px;">
+        <button onclick="generateRoast()" class="btn coral shame-pulse" style="padding:20px 52px;font-size:18px;">🔥 Roast me</button>
       </div>
-      <div id="roastOutput" class="hidden brutal-border p-6 roast-card mb-6"></div>
-      <div id="shareButtons" class="hidden flex flex-wrap gap-4 justify-center">
-        <button onclick="downloadShareCard()" class="font-mono text-sm border-2 border-beige text-beige hover:bg-beige hover:text-black px-6 py-3 transition-all">↓ DOWNLOAD SHAME CARD (PNG)</button>
-        <button id="copyBtn" onclick="copyShareText()" class="font-mono text-sm border-2 border-fluorescent text-fluorescent hover:bg-fluorescent hover:text-black px-6 py-3 transition-all">⎘ COPY FOR SLACK</button>
+      <div id="roastOutput" class="card hidden roast-card" style="padding:32px;margin-bottom:24px;"></div>
+      <div id="shareButtons" class="hidden">
+        <button onclick="downloadShareCard()" class="btn ghost" style="font-size:13px;">↓ Download shame card (PNG)</button>
+        <button id="copyBtn" onclick="copyShareText()" class="btn ghost" style="font-size:13px;border-color:var(--moss);color:var(--moss);">⎘ Copy for Slack</button>
       </div>
     </section>
 
@@ -296,21 +386,21 @@
 
 <!-- Penance Modal -->
 <div id="penanceModal" class="modal-overlay hidden">
-  <div class="brutal-border bg-[#0d0d0d] p-8 max-w-lg w-full mx-4">
-    <div class="text-center mb-6">
-      <div class="stamp stamp-red mb-3 mx-auto" style="width:fit-content">SENTENCE ISSUED</div>
-      <h2 class="text-2xl font-black font-mono mt-4 text-shame">INFRACTION LOGGED</h2>
-      <p class="font-mono text-xs text-gray-500 mt-1">Entered into the permanent, distributed, cloud-backed record.</p>
+  <div class="card" style="padding:36px;max-width:480px;width:100%;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <span class="stamp stamp-coral" style="margin-bottom:16px;display:inline-flex;">Sentence Issued</span>
+      <h2 class="serif" style="font-size:40px;font-style:italic;color:var(--coral-deep);margin-top:12px;">Infraction logged.</h2>
+      <p class="mono" style="font-size:11px;color:var(--ash);margin-top:4px;">Entered into the permanent, distributed, cloud-backed record.</p>
     </div>
-    <div class="border border-gray-800 p-4 mb-4 text-center">
-      <div class="font-mono text-xs text-gray-500 mb-1 tracking-widest">SHAME POINTS ACCRUED</div>
-      <div id="penancePoints" class="shame-counter text-5xl">+0</div>
+    <div style="border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;text-align:center;background:rgba(216,118,84,0.04);">
+      <div class="eyebrow" style="margin-bottom:8px;">Shame points accrued</div>
+      <div id="penancePoints" class="shame-num" style="font-size:72px;"></div>
     </div>
-    <div class="border border-gray-800 p-4 mb-6">
-      <div class="font-mono text-xs text-gray-500 mb-3 tracking-widest">YOUR ASSIGNED PENANCE:</div>
-      <p id="penanceText" class="font-mono text-fluorescent font-bold leading-relaxed"></p>
+    <div style="border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:24px;">
+      <div class="eyebrow" style="margin-bottom:10px;">Your assigned penance:</div>
+      <p id="penanceText" style="font-size:15px;line-height:1.6;color:var(--ink-soft);"></p>
     </div>
-    <button onclick="closePenanceModal()" class="form-btn">I ACCEPT MY PUNISHMENT →</button>
+    <button onclick="closePenanceModal()" class="btn coral full">I accept my punishment →</button>
   </div>
 </div>
 
@@ -324,12 +414,12 @@
 const CONFIG = {
 
   SHAME_TITLES: [
-    { min: 0,    title: 'Slightly Tardy',       color: '#9CA3AF' },
-    { min: 100,  title: 'Habitually Vague',      color: '#D4C5A0' },
-    { min: 300,  title: 'PowerPoint Felon',      color: '#F59E0B' },
-    { min: 750,  title: 'Reply-All Recidivist',  color: '#EF4444' },
-    { min: 1500, title: 'Out-of-Office Outlaw',  color: '#DC2626' },
-    { min: 3000, title: 'C-Suite Embarrassment', color: '#84CC16' },
+    { min: 0,    title: 'Slightly Tardy',       color: '#9A8E7B' },
+    { min: 100,  title: 'Habitually Vague',      color: '#C8A45C' },
+    { min: 300,  title: 'PowerPoint Felon',      color: '#D87654' },
+    { min: 750,  title: 'Reply-All Recidivist',  color: '#B45239' },
+    { min: 1500, title: 'Out-of-Office Outlaw',  color: '#8B3A2A' },
+    { min: 3000, title: 'C-Suite Embarrassment', color: '#5B3A4A' },
   ],
 
   DEMERITS: [
@@ -516,10 +606,10 @@ function setBtnLoading(btnId, loading) {
   const btn = document.getElementById(btnId);
   btn.disabled = loading;
   if (loading) {
-    btn.dataset.orig = btn.textContent;
-    btn.innerHTML = '<div class="spinner"></div> VERIFYING...';
+    btn.dataset.orig = btn.innerHTML;
+    btn.innerHTML = '<div class="spinner"></div> Verifying...';
   } else {
-    btn.innerHTML = btn.dataset.orig || btn.textContent;
+    btn.innerHTML = btn.dataset.orig || btn.innerHTML;
   }
 }
 
@@ -566,10 +656,9 @@ async function doLogout() {
   state.currentUser = null;
   state.users = [];
   document.getElementById('mainApp').classList.add('hidden');
-  document.getElementById('authGate').classList.remove('hidden');
+  document.getElementById('authGate').style.display = 'flex';
   document.getElementById('loginEmail').value = '';
   document.getElementById('loginPassword').value = '';
-  // Make sure login form is visible
   document.getElementById('loginForm').classList.remove('hidden');
   document.getElementById('registerForm').classList.add('hidden');
 }
@@ -583,8 +672,7 @@ async function loadLeaderboard() {
 }
 
 async function initApp() {
-  if (!state.session?.token) return; // auth gate stays visible
-
+  if (!state.session?.token) return;
   try {
     [state.currentUser, state.users] = await Promise.all([
       api('/users/' + state.session.userId),
@@ -592,13 +680,12 @@ async function initApp() {
     ]);
     showMainApp();
   } catch(e) {
-    // Expired or invalid session
     saveSession(null);
   }
 }
 
 function showMainApp() {
-  document.getElementById('authGate').classList.add('hidden');
+  document.getElementById('authGate').style.display = 'none';
   document.getElementById('mainApp').classList.remove('hidden');
   updateHeader();
   showSection('wallOfShame');
@@ -610,12 +697,12 @@ function updateHeader() {
   const t = getShameTitle(user.shame_points);
   document.getElementById('headerUserName').textContent = user.name;
   document.getElementById('headerShamePoints').textContent = `${user.shame_points} pts — ${t.title}`;
+  const meta = document.getElementById('headerMeta');
+  if (meta) meta.style.display = 'block';
 }
 
-// Run on page load if session exists
 initApp();
 
-// Enter key support on auth forms
 document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 document.getElementById('regPassword').addEventListener('keydown',   e => { if (e.key === 'Enter') doRegister(); });
 
@@ -645,40 +732,36 @@ function showSection(id) {
 function renderLeaderboard() {
   const container = document.getElementById('leaderboard');
   if (!state.users.length) {
-    container.innerHTML = '<p class="font-mono text-gray-600 text-sm">No employees on record yet. Be the first.</p>';
+    container.innerHTML = '<p class="mono" style="font-size:13px;color:var(--ash);padding:28px 22px;">No employees on record yet. Be the first.</p>';
     return;
   }
   container.innerHTML = state.users.map((user, i) => {
     const t = getShameTitle(user.shame_points);
     const isCurrent  = user.id === state.session?.userId;
     const isInfamous = (user.badges||[]).includes('reply_all_menace') || user.shame_points >= 500;
-    const medal = i===0 ? '🥇' : i===1 ? '🥈' : i===2 ? '🥉' : `#${i+1}`;
+    const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `<span class="mono" style="font-size:12px;color:var(--ash);">#${i+1}</span>`;
     return `
-      <div class="border-2 ${isCurrent ? 'border-shame bg-red-950 bg-opacity-20' : 'border-gray-800'} p-4 md:p-6">
-        <div class="flex items-start justify-between gap-4">
-          <div class="flex items-start gap-3 md:gap-4 min-w-0">
-            <div class="font-mono font-black text-xl md:text-2xl shrink-0 w-10 text-center">${medal}</div>
-            <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2 mb-1">
-                <h3 class="font-mono font-bold text-base md:text-lg truncate">${escHtml(user.name)}</h3>
-                ${isCurrent ? '<span class="text-xs font-mono text-shame border border-shame px-2 py-0.5 shrink-0">YOU</span>' : ''}
-                ${isInfamous ? '<span class="stamp stamp-red shrink-0" style="transform:rotate(-3deg);font-size:.55rem;padding:2px 6px">HALL OF INFAMY</span>' : ''}
-              </div>
-              <div class="font-mono text-sm" style="color:${t.color}">${t.title}</div>
-              ${user.last_infraction_title ? `<div class="font-mono text-xs text-gray-600 mt-1 truncate">Last: ${escHtml(user.last_infraction_title)} · ${timeAgo(user.last_infraction_ts)}</div>` : ''}
-              <div class="flex gap-2 mt-2">
-                ${(user.badges||[]).slice(0,5).map(b => {
-                  const badge = CONFIG.ACHIEVEMENTS.find(a => a.id === b);
-                  return badge ? `<span title="${escHtml(badge.name)}" class="text-lg leading-none cursor-help">${badge.icon}</span>` : '';
-                }).join('')}
-              </div>
-            </div>
+      <div style="display:grid;grid-template-columns:44px 1fr auto;align-items:center;gap:16px;padding:18px 22px;border-top:${i===0?'none':'1px solid var(--line)'};${isCurrent?'background:rgba(216,118,84,0.05);':''}">
+        <div style="text-align:center;font-size:${i<3?'22px':'13px'};line-height:1;">${medal}</div>
+        <div style="min-width:0;">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;">
+            <span style="font-weight:500;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(user.name)}</span>
+            ${isCurrent ? '<span class="stamp stamp-coral" style="font-size:9px;padding:3px 8px;">You</span>' : ''}
+            ${isInfamous ? '<span class="stamp stamp-ink" style="font-size:9px;padding:3px 8px;">Hall of Infamy</span>' : ''}
           </div>
-          <div class="text-right shrink-0">
-            <div class="shame-counter text-2xl md:text-3xl">${user.shame_points}</div>
-            <div class="font-mono text-xs text-gray-500 mt-1">shame pts</div>
-            <div class="font-mono text-xs text-gray-600">${user.infraction_count||0} offense${(user.infraction_count||0)!==1?'s':''}</div>
+          <div class="mono" style="font-size:11px;color:${t.color};margin-bottom:4px;">${t.title}</div>
+          ${user.last_infraction_title ? `<div class="mono" style="font-size:10px;color:var(--ash-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Last: ${escHtml(user.last_infraction_title)} · ${timeAgo(user.last_infraction_ts)}</div>` : ''}
+          <div style="display:flex;gap:4px;margin-top:6px;">
+            ${(user.badges||[]).slice(0,5).map(b => {
+              const badge = CONFIG.ACHIEVEMENTS.find(a => a.id === b);
+              return badge ? `<span title="${escHtml(badge.name)}" style="font-size:15px;cursor:help;">${badge.icon}</span>` : '';
+            }).join('')}
           </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div class="shame-num" style="font-size:clamp(24px,3vw,36px);">${user.shame_points}</div>
+          <div class="mono" style="font-size:10px;color:var(--ash);margin-top:2px;">shame pts</div>
+          <div class="mono" style="font-size:10px;color:var(--ash-2);">${user.infraction_count||0} offense${(user.infraction_count||0)!==1?'s':''}</div>
         </div>
       </div>`;
   }).join('');
@@ -690,14 +773,14 @@ function renderLeaderboard() {
 
 function renderDemeritCatalog() {
   document.getElementById('demeritList').innerHTML = CONFIG.DEMERITS.map(d => `
-    <div class="demerit-row border border-gray-800 p-3 flex items-center justify-between gap-3 cursor-pointer" onclick="quickDemerit('${d.id}')">
-      <div class="min-w-0">
-        <div class="font-mono text-sm font-bold truncate">${escHtml(d.name)}</div>
-        <div class="font-mono text-xs text-gray-500 truncate">${escHtml(d.description)}</div>
+    <div class="demerit-row" onclick="quickDemerit('${d.id}')">
+      <div style="min-width:0;">
+        <div style="font-weight:500;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(d.name)}</div>
+        <div class="mono" style="font-size:10px;color:var(--ash);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(d.description)}</div>
       </div>
-      <div class="flex items-center gap-3 shrink-0">
-        <span class="font-mono font-black text-shame text-sm">+${d.points}</span>
-        <button class="demerit-btn bg-shame text-white font-mono text-xs px-3 py-1">GUILTY</button>
+      <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;">
+        <span class="mono" style="font-weight:700;color:var(--coral-deep);font-size:13px;">+${d.points}</span>
+        <button class="demerit-btn btn coral" style="padding:5px 12px;font-size:11px;">Guilty</button>
       </div>
     </div>`).join('');
 }
@@ -715,19 +798,18 @@ async function submitCustomInfraction() {
   const witness = document.getElementById('infraWitness').value.trim() || 'Unknown witnesses';
   if (!title) { document.getElementById('infraTitle').focus(); return; }
   const btn = document.getElementById('submitBtn');
-  btn.innerHTML = '<div class="spinner"></div> FILING...'; btn.disabled = true;
+  btn.innerHTML = '<div class="spinner"></div> Filing...'; btn.disabled = true;
   try {
     await addInfraction({ demeritId: null, title, points, witness, deadline });
     ['infraTitle','infraPoints','infraDeadline','infraWitness'].forEach(id => document.getElementById(id).value = '');
   } finally {
-    btn.innerHTML = 'FORMALLY ACKNOWLEDGE MY FAILURE →'; btn.disabled = false;
+    btn.innerHTML = 'Formally acknowledge my failure →'; btn.disabled = false;
   }
 }
 
 async function addInfraction(infraction) {
   const userId = state.session.userId;
   const result = await api('/users/' + userId + '/infractions', 'POST', infraction);
-
   if (!state.currentUser.infractions) state.currentUser.infractions = [];
   state.currentUser.infractions.push({
     id: result.id, user_id: userId,
@@ -738,7 +820,6 @@ async function addInfraction(infraction) {
   });
   state.currentUser.shame_points = result.new_total;
   state.currentUser.badges = result.badges;
-
   const summary = state.users.find(u => u.id === userId);
   if (summary) {
     summary.shame_points = result.new_total;
@@ -747,7 +828,6 @@ async function addInfraction(infraction) {
     summary.last_infraction_title = infraction.title;
     summary.last_infraction_ts = result.timestamp_ms;
   }
-
   updateHeader();
   showPenanceModal(result.points);
 }
@@ -772,12 +852,12 @@ function renderAchievements() {
   document.getElementById('achievementGrid').innerHTML = CONFIG.ACHIEVEMENTS.map(a => {
     const isEarned = earned.includes(a.id);
     return `
-      <div class="achievement-badge ${isEarned ? 'earned' : ''} p-5 relative">
-        ${isEarned ? '<div class="stamp stamp-green absolute top-3 right-3" style="font-size:.55rem;padding:2px 6px">EARNED</div>' : ''}
-        <div class="text-4xl mb-3 ${isEarned ? '' : 'opacity-20'}">${a.icon}</div>
-        <div class="font-mono font-bold text-sm mb-2 ${isEarned ? 'text-fluorescent' : 'text-gray-600'}">${escHtml(a.name)}</div>
-        <div class="font-mono text-xs text-gray-400 leading-relaxed">${escHtml(a.description)}</div>
-        ${!isEarned ? `<div class="font-mono text-xs text-gray-700 mt-3">Unlocks at ${a.triggerPoints} pts</div>` : ''}
+      <div class="achievement-badge ${isEarned ? 'earned' : ''}" style="padding:22px;position:relative;">
+        ${isEarned ? '<span class="stamp stamp-moss" style="position:absolute;top:14px;right:14px;font-size:9px;padding:3px 10px;">Earned</span>' : ''}
+        <div style="font-size:36px;margin-bottom:12px;${isEarned?'':'opacity:0.18'}">${a.icon}</div>
+        <div style="font-weight:600;font-size:14px;margin-bottom:6px;${isEarned?'color:var(--moss)':'color:var(--ash)'}">${escHtml(a.name)}</div>
+        <div class="mono" style="font-size:11px;color:var(--ash);line-height:1.55;">${escHtml(a.description)}</div>
+        ${!isEarned ? `<div class="mono" style="font-size:10px;color:var(--ash-2);margin-top:10px;">Unlocks at ${a.triggerPoints} pts</div>` : ''}
       </div>`;
   }).join('');
 }
@@ -796,28 +876,40 @@ function renderDailyReport() {
   const docId  = 'SHM-' + (Math.floor(Math.random()*90000)+10000);
   const recent = (user.infractions||[]).slice(-3).reverse();
   container.innerHTML = `
-    <div class="font-mono text-xs text-gray-600 mb-6 pb-4 border-b border-gray-800 flex flex-wrap gap-x-4 gap-y-1">
+    <div class="mono" style="font-size:10px;color:var(--ash);margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--line);display:flex;flex-wrap:wrap;gap:16px;">
       <span>DOC: ${docId}</span><span>DATE: ${today}</span><span>CLASS: INTERNAL SHAME</span>
     </div>
-    <div class="grid grid-cols-3 gap-3 mb-6">
-      <div class="text-center border border-gray-800 p-3"><div class="shame-counter text-2xl md:text-3xl">${user.shame_points}</div><div class="font-mono text-xs text-gray-500 mt-1">SHAME PTS</div></div>
-      <div class="text-center border border-gray-800 p-3"><div class="shame-counter text-2xl md:text-3xl" style="color:#D4C5A0">${(user.infractions||[]).length}</div><div class="font-mono text-xs text-gray-500 mt-1">INFRACTIONS</div></div>
-      <div class="text-center border border-gray-800 p-3"><div class="shame-counter text-2xl md:text-3xl" style="color:#84CC16">${(user.badges||[]).length}</div><div class="font-mono text-xs text-gray-500 mt-1">BADGES</div></div>
-    </div>
-    <div class="border-l-4 border-shame pl-5 mb-6">
-      <div class="font-mono text-xs text-gray-500 mb-2 tracking-widest">TODAY'S ASSESSMENT</div>
-      <p class="font-mono text-base md:text-lg text-white leading-relaxed">${escHtml(report)}</p>
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-      <div><div class="font-mono text-xs text-gray-500 mb-1 tracking-widest">CORPORATE TITLE</div><div class="font-mono font-bold" style="color:${t.color}">${t.title}</div></div>
-      <div>
-        <div class="font-mono text-xs text-gray-500 mb-1 tracking-widest">RECENT OFFENSES</div>
-        ${recent.map(i => `<div class="font-mono text-xs text-gray-300 truncate">${escHtml(i.title)} <span class="text-shame">+${i.points}</span></div>`).join('')
-          || '<div class="font-mono text-xs text-gray-700">No infractions. Suspicious.</div>'}
+    <div class="daily-stat-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px;">
+      <div style="text-align:center;border:1px solid var(--line);border-radius:12px;padding:16px;">
+        <div class="shame-num" style="font-size:40px;">${user.shame_points}</div>
+        <div class="eyebrow" style="margin-top:6px;">Shame pts</div>
+      </div>
+      <div style="text-align:center;border:1px solid var(--line);border-radius:12px;padding:16px;">
+        <div class="shame-num" style="font-size:40px;color:var(--gold);">${(user.infractions||[]).length}</div>
+        <div class="eyebrow" style="margin-top:6px;">Infractions</div>
+      </div>
+      <div style="text-align:center;border:1px solid var(--line);border-radius:12px;padding:16px;">
+        <div class="shame-num" style="font-size:40px;color:var(--moss);">${(user.badges||[]).length}</div>
+        <div class="eyebrow" style="margin-top:6px;">Badges</div>
       </div>
     </div>
-    <div class="border-t border-gray-800 pt-4 font-mono text-xs text-gray-700">
-      This report was generated automatically by the Shameify Department of Corporate Accountability. It is not intended as constructive feedback.
+    <div style="border-left:3px solid var(--coral);padding-left:20px;margin-bottom:28px;">
+      <div class="eyebrow" style="margin-bottom:10px;">Today's Assessment</div>
+      <p class="serif" style="font-size:clamp(18px,2.5vw,26px);font-style:italic;line-height:1.35;">"${escHtml(report)}"</p>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+      <div>
+        <div class="eyebrow" style="margin-bottom:8px;">Corporate Title</div>
+        <div class="serif" style="font-size:24px;font-style:italic;color:${t.color};">${t.title}</div>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:8px;">Recent Offenses</div>
+        ${recent.map(i => `<div class="mono" style="font-size:11px;color:var(--ink-soft);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px;">${escHtml(i.title)} <span style="color:var(--coral-deep);">+${i.points}</span></div>`).join('')
+          || '<div class="mono" style="font-size:11px;color:var(--ash-2);">No infractions. Suspicious.</div>'}
+      </div>
+    </div>
+    <div style="border-top:1px solid var(--line);padding-top:16px;" class="mono">
+      <span style="font-size:10px;color:var(--ash-2);">This report was generated automatically by the Shameify Department of Corporate Accountability. It is not intended as constructive feedback.</span>
     </div>`;
 }
 
@@ -833,15 +925,16 @@ function generateRoast() {
   const container = document.getElementById('roastOutput');
   container.classList.remove('hidden');
   container.innerHTML = `
-    <div class="font-mono text-xs text-shame mb-4 tracking-widest">OFFICIALLY ENTERED INTO THE RECORD</div>
-    <p class="font-mono text-lg md:text-xl text-white leading-relaxed font-bold mb-6">${escHtml(roast)}</p>
-    <div class="border-t border-gray-800 pt-4">
-      <div class="font-mono text-xs text-gray-600">
+    <div class="eyebrow" style="margin-bottom:16px;color:var(--coral-deep);">Officially entered into the record</div>
+    <p class="serif" style="font-size:clamp(18px,3vw,28px);font-style:italic;line-height:1.35;margin-bottom:24px;">"${escHtml(roast)}"</p>
+    <div style="border-top:1px solid var(--line);padding-top:16px;">
+      <div class="mono" style="font-size:11px;color:var(--ash);">
         Signed: The Shameify Dept. of Corporate Accountability<br>
-        Subject: ${escHtml(user.name)} | Title: ${t.title} | Score: ${user.shame_points} | Infractions: ${(user.infractions||[]).length}
+        Subject: ${escHtml(user.name)} · Title: ${t.title} · Score: ${user.shame_points} · Infractions: ${(user.infractions||[]).length}
       </div>
     </div>`;
-  document.getElementById('shareButtons').classList.remove('hidden');
+  const sb = document.getElementById('shareButtons');
+  sb.classList.remove('hidden');
   container.scrollIntoView({ behavior:'smooth', block:'nearest' });
 }
 
@@ -860,7 +953,7 @@ function copyShareText() {
   const btn = document.getElementById('copyBtn');
   navigator.clipboard.writeText(buildShareText()).then(() => {
     const orig = btn.textContent;
-    btn.textContent = '✓ COPIED'; setTimeout(() => btn.textContent = orig, 2500);
+    btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = orig, 2500);
   }).catch(() => alert(buildShareText()));
 }
 
@@ -871,26 +964,26 @@ function downloadShareCard() {
   const W = 800, H = 450;
   const t = getShameTitle(user.shame_points);
   const roast = fillTemplate(getRand(CONFIG.ROAST_TEMPLATES), user);
-  ctx.fillStyle='#0a0a0a'; ctx.fillRect(0,0,W,H);
-  ctx.strokeStyle='#DC2626'; ctx.lineWidth=4; ctx.strokeRect(4,4,W-8,H-8);
-  ctx.fillStyle='#DC2626'; ctx.fillRect(4,4,W-8,56);
-  ctx.fillStyle='#fff'; ctx.font='bold 22px "JetBrains Mono",monospace';
-  ctx.fillText('SHAMEIFY™  —  OFFICIAL SHAME CERTIFICATE',20,38);
-  ctx.fillStyle=t.color; ctx.font='bold 15px "JetBrains Mono",monospace';
-  ctx.fillText(t.title.toUpperCase(),20,90);
-  ctx.fillStyle='#fff'; ctx.font='bold 34px Inter,sans-serif'; ctx.fillText(user.name,20,135);
-  ctx.fillStyle='#DC2626'; ctx.font='bold 52px "JetBrains Mono",monospace'; ctx.fillText(String(user.shame_points),20,215);
-  ctx.fillStyle='#6B7280'; ctx.font='13px "JetBrains Mono",monospace'; ctx.fillText('SHAME POINTS',20,234);
-  ctx.fillStyle='#D4C5A0'; ctx.font='bold 52px "JetBrains Mono",monospace'; ctx.fillText(String((user.infractions||[]).length),240,215);
-  ctx.fillStyle='#6B7280'; ctx.font='13px "JetBrains Mono",monospace'; ctx.fillText('INFRACTIONS',240,234);
-  ctx.strokeStyle='#222'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(20,255); ctx.lineTo(W-20,255); ctx.stroke();
-  ctx.fillStyle='#e5e7eb'; ctx.font='15px "JetBrains Mono",monospace';
-  wrapCanvasText(ctx,`"${roast}"`,20,285,W-40,22,390);
-  ctx.fillStyle='#111'; ctx.fillRect(4,H-40,W-8,36);
-  ctx.fillStyle='#4B5563'; ctx.font='12px "JetBrains Mono",monospace'; ctx.fillText('Shame Is the New Motivation™  |  getshamed.com',20,H-16);
+  ctx.fillStyle = '#F5EFE3'; ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle = '#B45239'; ctx.lineWidth = 3; ctx.strokeRect(3,3,W-6,H-6);
+  ctx.fillStyle = '#B45239'; ctx.fillRect(3,3,W-6,54);
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 19px "JetBrains Mono",monospace';
+  ctx.fillText('SHAMEIFY™  —  OFFICIAL SHAME CERTIFICATE', 20, 35);
+  ctx.fillStyle = '#6B6356'; ctx.font = 'bold 12px "JetBrains Mono",monospace';
+  ctx.fillText(t.title.toUpperCase(), 20, 82);
+  ctx.fillStyle = '#0F0E0C'; ctx.font = '32px "Geist",sans-serif'; ctx.fillText(user.name, 20, 124);
+  ctx.fillStyle = '#B45239'; ctx.font = 'bold 52px "JetBrains Mono",monospace'; ctx.fillText(String(user.shame_points), 20, 206);
+  ctx.fillStyle = '#6B6356'; ctx.font = '12px "JetBrains Mono",monospace'; ctx.fillText('SHAME POINTS', 20, 226);
+  ctx.fillStyle = '#C8A45C'; ctx.font = 'bold 52px "JetBrains Mono",monospace'; ctx.fillText(String((user.infractions||[]).length), 240, 206);
+  ctx.fillStyle = '#6B6356'; ctx.font = '12px "JetBrains Mono",monospace'; ctx.fillText('INFRACTIONS', 240, 226);
+  ctx.strokeStyle = 'rgba(15,14,12,0.12)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(20,248); ctx.lineTo(W-20,248); ctx.stroke();
+  ctx.fillStyle = '#1A1813'; ctx.font = '14px "JetBrains Mono",monospace';
+  wrapCanvasText(ctx, `"${roast}"`, 20, 278, W-40, 22, 388);
+  ctx.fillStyle = 'rgba(15,14,12,0.05)'; ctx.fillRect(3,H-40,W-6,37);
+  ctx.fillStyle = '#6B6356'; ctx.font = '11px "JetBrains Mono",monospace'; ctx.fillText('Shame Is the New Motivation™  |  getshamed.com', 20, H-16);
   ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(-Math.PI/6);
-  ctx.fillStyle='rgba(220,38,38,0.05)'; ctx.font='bold 72px "JetBrains Mono",monospace';
-  ctx.textAlign='center'; ctx.fillText('CONFIDENTIAL',0,0); ctx.restore();
+  ctx.fillStyle = 'rgba(216,118,84,0.06)'; ctx.font = 'bold 72px "JetBrains Mono",monospace';
+  ctx.textAlign = 'center'; ctx.fillText('CONFIDENTIAL', 0, 0); ctx.restore();
   const link = document.createElement('a');
   link.download = `shameify-${user.name.replace(/\s+/g,'-').toLowerCase()}.png`;
   link.href = canvas.toDataURL('image/png'); link.click();
