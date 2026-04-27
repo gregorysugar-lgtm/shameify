@@ -354,6 +354,93 @@
   </div>
 </section>
 
+<!-- ─────────────────────────  APP PREVIEW  ───────────────────────── -->
+<section id="appPreview" class="container" style="padding: 80px 32px;">
+  <div style="margin-bottom: 48px; max-width: 760px;">
+    <div class="eyebrow" style="margin-bottom: 14px;">— THE PRODUCT</div>
+    <h2 class="display" style="font-size: clamp(44px, 6vw, 84px); margin: 0;">A surprisingly <span class="ital">polished</span> application for ruining your week.</h2>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px;">
+    <!-- Wall of shame app -->
+    <div class="app-mock">
+      <div class="app-topbar">
+        <span class="traffic" style="background:#FF5F57;"></span>
+        <span class="traffic" style="background:#FEBC2E;"></span>
+        <span class="traffic" style="background:#28C840;"></span>
+        <span class="mono" style="color: rgba(255,255,255,0.5); font-size: 11px; margin-left: 8px;">app.getshamed.com</span>
+      </div>
+      <div style="padding: 22px 26px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; gap: 6px;">
+        <span class="app-tab active">Wall of Shame</span>
+        <span class="app-tab">Submit Infraction</span>
+        <span class="app-tab">Badges</span>
+        <span class="app-tab">Daily Report</span>
+        <span class="app-tab">🔥 Roast Mode</span>
+      </div>
+      <div style="padding: 28px 26px;">
+        <div class="row" style="justify-content: space-between; margin-bottom: 18px;">
+          <div>
+            <div class="serif" style="font-size: 36px; color: var(--cream);">Wall of Shame</div>
+            <div class="mono" style="font-size: 11px; color: rgba(255,255,255,0.45); letter-spacing: 0.14em; margin-top: 4px;">PUBLIC RECORD · Q2 2026</div>
+          </div>
+          <div class="row" style="gap: 8px;">
+            <span class="mono" style="font-size: 11px; color: var(--coral); padding: 6px 10px; border: 1px solid var(--coral); border-radius: 999px;">● LIVE</span>
+          </div>
+        </div>
+        <div id="app-rows-dark"></div>
+      </div>
+    </div>
+
+    <!-- Profile / Daily Report -->
+    <div style="display: grid; grid-template-rows: auto 1fr; gap: 24px;">
+      <div class="card" style="padding: 28px; background: linear-gradient(180deg, #F5DCC9 0%, #E8B596 100%); border-color: transparent;">
+        <div class="row" style="justify-content: space-between; align-items: flex-start;">
+          <div>
+            <div class="mono" style="font-size: 10px; letter-spacing: 0.14em; color: var(--coral-deep);">EMPLOYEE FILE</div>
+            <div class="serif" style="font-size: 32px; line-height: 1.1; margin-top: 4px;">Ethan Hall</div>
+            <div class="ui" style="font-size: 13px; color: var(--ash); margin-top: 4px;">Senior PM · Operations</div>
+          </div>
+          <div class="avatar" style="width: 56px; height: 56px; font-size: 18px;">EH</div>
+        </div>
+        <div style="margin-top: 22px;">
+          <div class="row" style="justify-content: space-between; margin-bottom: 6px;">
+            <span class="ui" style="font-size: 14px;">Shame score</span>
+            <span class="mono" style="font-weight: 600; color: var(--coral-deep);">2,847 / 3000</span>
+          </div>
+          <div class="bar" style="background: rgba(15,14,12,0.12); height: 6px;"><i style="width: 94%;"></i></div>
+        </div>
+        <div class="row" style="margin-top: 18px; gap: 8px; flex-wrap: wrap;">
+          <span class="stamp" style="background: rgba(15,14,12,0.85); color: var(--cream); border-color: transparent; font-size: 10px;">Reply-All Recidivist</span>
+          <span class="stamp" style="font-size: 10px;">Calendar Ghost</span>
+          <span class="stamp" style="font-size: 10px;">11:47pm Emailer</span>
+        </div>
+        <div style="margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(15,14,12,0.15);">
+          <div class="mono" style="font-size: 10px; letter-spacing: 0.14em; color: var(--coral-deep);">CURRENT TITLE</div>
+          <div class="serif" style="font-size: 28px; font-style: italic; margin-top: 2px;">PowerPoint Felon</div>
+        </div>
+      </div>
+
+      <div class="card" style="padding: 28px; background: #FBF7EC; position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg); font-family: 'JetBrains Mono', monospace; font-size: 56px; color: rgba(216,118,84,0.06); font-weight: 700; letter-spacing: 0.1em; pointer-events: none;">CONFIDENTIAL</div>
+        <div class="row" style="justify-content: space-between;">
+          <div class="mono" style="font-size: 10px; letter-spacing: 0.14em; color: var(--coral-deep);">DAILY REPORT · 04/27/2026</div>
+          <div class="mono" style="font-size: 10px; color: var(--ash);">DOC SHM-44182</div>
+        </div>
+        <div class="serif" style="font-size: 22px; line-height: 1.35; margin-top: 18px; color: var(--ink); position: relative;">
+          "Today, Ethan sent a calendar invite titled 'Quick Chat.' It lasted 47 minutes. Nothing was quick."
+        </div>
+        <div style="margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); position: relative;" class="row">
+          <div style="flex: 1;">
+            <div class="mono" style="font-size: 10px; color: var(--ash); letter-spacing: 0.14em;">PENANCE ASSIGNED</div>
+            <div class="ui" style="font-size: 13px; line-height: 1.4; margin-top: 6px;">Bring donuts to the 9am standup. The good kind. From the actual bakery.</div>
+          </div>
+          <button class="btn" style="padding: 10px 16px; font-size: 12px;">Acknowledge</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ─────────────────────────  LIVE LEADERBOARD  ───────────────────────── -->
 <section id="leaderboard" class="container" style="padding: 80px 32px;">
   <div class="row" style="justify-content: space-between; align-items: flex-end; margin-bottom: 40px; gap: 24px; flex-wrap: wrap;">
@@ -624,94 +711,7 @@
           <div class="ui" style="font-size: 14px; font-weight: 500;">Anonymous, IC-4</div>
           <div class="mono" style="font-size: 11px; color: var(--ash);">Submitted under duress · Bramble Insurance</div>
         </div>
-        <span class="stamp">Hall of Infamy</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ─────────────────────────  APP PREVIEW  ───────────────────────── -->
-<section id="appPreview" class="container" style="padding: 80px 32px;">
-  <div style="margin-bottom: 48px; max-width: 760px;">
-    <div class="eyebrow" style="margin-bottom: 14px;">— THE PRODUCT</div>
-    <h2 class="display" style="font-size: clamp(44px, 6vw, 84px); margin: 0;">A surprisingly <span class="ital">polished</span> application for ruining your week.</h2>
-  </div>
-
-  <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px;">
-    <!-- Wall of shame app -->
-    <div class="app-mock">
-      <div class="app-topbar">
-        <span class="traffic" style="background:#FF5F57;"></span>
-        <span class="traffic" style="background:#FEBC2E;"></span>
-        <span class="traffic" style="background:#28C840;"></span>
-        <span class="mono" style="color: rgba(255,255,255,0.5); font-size: 11px; margin-left: 8px;">app.getshamed.com</span>
-      </div>
-      <div style="padding: 22px 26px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; gap: 6px;">
-        <span class="app-tab active">Wall of Shame</span>
-        <span class="app-tab">Submit Infraction</span>
-        <span class="app-tab">Badges</span>
-        <span class="app-tab">Daily Report</span>
-        <span class="app-tab">🔥 Roast Mode</span>
-      </div>
-      <div style="padding: 28px 26px;">
-        <div class="row" style="justify-content: space-between; margin-bottom: 18px;">
-          <div>
-            <div class="serif" style="font-size: 36px; color: var(--cream);">Wall of Shame</div>
-            <div class="mono" style="font-size: 11px; color: rgba(255,255,255,0.45); letter-spacing: 0.14em; margin-top: 4px;">PUBLIC RECORD · Q2 2026</div>
-          </div>
-          <div class="row" style="gap: 8px;">
-            <span class="mono" style="font-size: 11px; color: var(--coral); padding: 6px 10px; border: 1px solid var(--coral); border-radius: 999px;">● LIVE</span>
-          </div>
-        </div>
-        <div id="app-rows-dark"></div>
-      </div>
-    </div>
-
-    <!-- Profile / Daily Report -->
-    <div style="display: grid; grid-template-rows: auto 1fr; gap: 24px;">
-      <div class="card" style="padding: 28px; background: linear-gradient(180deg, #F5DCC9 0%, #E8B596 100%); border-color: transparent;">
-        <div class="row" style="justify-content: space-between; align-items: flex-start;">
-          <div>
-            <div class="mono" style="font-size: 10px; letter-spacing: 0.14em; color: var(--coral-deep);">EMPLOYEE FILE</div>
-            <div class="serif" style="font-size: 32px; line-height: 1.1; margin-top: 4px;">Ethan Hall</div>
-            <div class="ui" style="font-size: 13px; color: var(--ash); margin-top: 4px;">Senior PM · Operations</div>
-          </div>
-          <div class="avatar" style="width: 56px; height: 56px; font-size: 18px;">EH</div>
-        </div>
-        <div style="margin-top: 22px;">
-          <div class="row" style="justify-content: space-between; margin-bottom: 6px;">
-            <span class="ui" style="font-size: 14px;">Shame score</span>
-            <span class="mono" style="font-weight: 600; color: var(--coral-deep);">2,847 / 3000</span>
-          </div>
-          <div class="bar" style="background: rgba(15,14,12,0.12); height: 6px;"><i style="width: 94%;"></i></div>
-        </div>
-        <div class="row" style="margin-top: 18px; gap: 8px; flex-wrap: wrap;">
-          <span class="stamp" style="background: rgba(15,14,12,0.85); color: var(--cream); border-color: transparent; font-size: 10px;">Reply-All Recidivist</span>
-          <span class="stamp" style="font-size: 10px;">Calendar Ghost</span>
-          <span class="stamp" style="font-size: 10px;">11:47pm Emailer</span>
-        </div>
-        <div style="margin-top: 22px; padding-top: 18px; border-top: 1px solid rgba(15,14,12,0.15);">
-          <div class="mono" style="font-size: 10px; letter-spacing: 0.14em; color: var(--coral-deep);">CURRENT TITLE</div>
-          <div class="serif" style="font-size: 28px; font-style: italic; margin-top: 2px;">PowerPoint Felon</div>
-        </div>
-      </div>
-
-      <div class="card" style="padding: 28px; background: #FBF7EC; position: relative; overflow: hidden;">
-        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-12deg); font-family: 'JetBrains Mono', monospace; font-size: 56px; color: rgba(216,118,84,0.06); font-weight: 700; letter-spacing: 0.1em; pointer-events: none;">CONFIDENTIAL</div>
-        <div class="row" style="justify-content: space-between;">
-          <div class="mono" style="font-size: 10px; letter-spacing: 0.14em; color: var(--coral-deep);">DAILY REPORT · 04/27/2026</div>
-          <div class="mono" style="font-size: 10px; color: var(--ash);">DOC SHM-44182</div>
-        </div>
-        <div class="serif" style="font-size: 22px; line-height: 1.35; margin-top: 18px; color: var(--ink); position: relative;">
-          “Today, Ethan sent a calendar invite titled ‘Quick Chat.’ It lasted 47 minutes. Nothing was quick.”
-        </div>
-        <div style="margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); position: relative;" class="row">
-          <div style="flex: 1;">
-            <div class="mono" style="font-size: 10px; color: var(--ash); letter-spacing: 0.14em;">PENANCE ASSIGNED</div>
-            <div class="ui" style="font-size: 13px; line-height: 1.4; margin-top: 6px;">Bring donuts to the 9am standup. The good kind. From the actual bakery.</div>
-          </div>
-          <button class="btn" style="padding: 10px 16px; font-size: 12px;">Acknowledge</button>
-        </div>
+        <span class=”stamp”>Hall of Infamy</span>
       </div>
     </div>
   </div>
