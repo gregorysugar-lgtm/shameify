@@ -302,6 +302,7 @@ input[type="date"]{ color-scheme:light; }
   <nav style="border-bottom:1px solid var(--line);background:rgba(245,239,227,0.7);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);position:sticky;top:60px;z-index:40;overflow-x:auto;">
     <div class="container" style="display:flex;gap:4px;padding-top:8px;padding-bottom:8px;">
       <button onclick="showSection('wallOfShame')"      class="nav-tab" data-tab="wallOfShame">Wall of Shame</button>
+      <button onclick="showSection('theLedger')"        class="nav-tab" data-tab="theLedger">The Ledger</button>
       <button onclick="showSection('submitInfraction')" class="nav-tab" data-tab="submitInfraction">Submit Infraction</button>
       <button onclick="showSection('achievements')"     class="nav-tab" data-tab="achievements">Badges</button>
       <button onclick="showSection('dailyReport')"      class="nav-tab" data-tab="dailyReport">Daily Report</button>
@@ -327,6 +328,16 @@ input[type="date"]{ color-scheme:light; }
         </div>
         <div id="leaderboard"></div>
       </div>
+    </section>
+
+    <!-- The Ledger -->
+    <section id="theLedger" class="section hidden">
+      <div style="margin-bottom:36px;">
+        <div class="eyebrow" style="margin-bottom:12px;">— Official Record</div>
+        <h2 class="serif" style="font-size:clamp(40px,6vw,80px);line-height:0.92;margin-bottom:10px;">The <span style="font-style:italic;color:var(--coral-deep);">Ledger.</span></h2>
+        <p class="mono" style="font-size:12px;color:var(--ash);">Every infraction. Logged. Timestamped. Permanent.</p>
+      </div>
+      <div id="ledgerFeed" style="display:flex;flex-direction:column;gap:14px;"></div>
     </section>
 
     <!-- Submit Infraction -->
@@ -747,6 +758,7 @@ const state = {
   users:       [],
   currentUser: null,
   demoMode:    false,
+  ledger:      [],
 };
 
 function saveSession(s) {
@@ -897,6 +909,13 @@ function claimIdentity(userId) {
 function enterDemoMode() {
   state.demoMode = true;
   state.users = LINEZERO_USERS.map(u => ({ ...u, infractions: u.infractions.map(i => ({...i})), badges: [...u.badges] }));
+  state.ledger = state.users.flatMap(u =>
+    (u.infractions || []).map(inf => ({
+      id: inf.id, targetId: u.id, targetName: u.name,
+      shamedBy: null, title: inf.title, points: inf.points,
+      timestamp_ms: inf.timestamp_ms, witness: inf.witness || '',
+    }))
+  ).sort((a, b) => b.timestamp_ms - a.timestamp_ms);
   const savedId  = getSavedIdentity();
   const savedUser = savedId ? state.users.find(u => u.id === savedId) : null;
   if (savedUser) {
@@ -1001,6 +1020,7 @@ function showSection(id) {
     }
     updateDemeritLabel();
   }
+  if (id === 'theLedger')        renderLedger();
   if (id === 'achievements')     renderAchievements();
   if (id === 'dailyReport')      renderDailyReport();
   if (id === 'roastMode') {
@@ -1168,6 +1188,14 @@ async function addInfraction(infraction) {
 
   if (state.demoMode) state.users.sort((a, b) => b.shame_points - a.shame_points);
 
+  const ledgerEntry = {
+    id: infrRecord.id, targetId, targetName: target?.name || 'Unknown',
+    shamedBy: state.currentUser?.name || null,
+    title: infraction.title, points: result.points,
+    timestamp_ms: result.timestamp_ms, witness: infraction.witness || '',
+  };
+  state.ledger = [ledgerEntry, ...state.ledger];
+
   if (targetId === state.session.userId) {
     ackInfraction(result.id);
     showPenanceModal(result.points);
@@ -1228,12 +1256,65 @@ function showShameFiledModal(points, targetUser, infrTitle) {
   document.getElementById('shameFiledModal').classList.remove('hidden');
 }
 function closeShameFiledModal() { document.getElementById('shameFiledModal').classList.add('hidden'); }
+function makeShameUrl(targetName, title, points, shamedBy) {
+  const base = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+    ? location.origin : 'https://getshamed.com';
+  const p = new URLSearchParams({ name: targetName, title, points: String(points) });
+  if (shamedBy) p.set('by', shamedBy);
+  return base + '/shame?' + p.toString();
+}
+
+function copyShameLink(targetName, title, points, shamedBy, btn) {
+  const url = makeShameUrl(targetName, title, points, shamedBy);
+  navigator.clipboard.writeText(url).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = orig; }, 1800);
+  });
+}
+
 function shareShameToTeams() {
   if (!_lastFiledShame) return;
   const { name, points, title } = _lastFiledShame;
-  const msg = `📋 Shame Report: ${name} has been formally charged with "${title}" — +${points} shame points added to their permanent record.\n\nSee the full Wall of Shame → https://getshamed.com/?linezero`;
-  const url = 'https://teams.microsoft.com/l/chat/0/0?users=&message=' + encodeURIComponent(msg);
-  window.open(url, '_blank');
+  const shameUrl = makeShameUrl(name, title, points, state.currentUser?.name);
+  const msg = `📋 Shame Report: ${name} has been formally charged with "${title}" — +${points} shame points added to their permanent record.\n\n${shameUrl}`;
+  window.open('https://teams.microsoft.com/l/chat/0/0?users=&message=' + encodeURIComponent(msg), '_blank');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// THE LEDGER
+// ═══════════════════════════════════════════════════════════════════
+
+function renderLedger() {
+  const feed = document.getElementById('ledgerFeed');
+  if (!state.ledger.length) {
+    feed.innerHTML = '<p class="mono" style="font-size:12px;color:var(--ash);text-align:center;padding:40px 0;">No infractions on record. Yet.</p>';
+    return;
+  }
+  feed.innerHTML = state.ledger.map(e => {
+    const user = state.users.find(u => u.id === e.targetId);
+    const initials = e.targetName.split(' ').map(p => p[0]).join('').slice(0,2).toUpperCase();
+    const t = user ? getUserTitle(user) : { title: 'Accused', color: 'var(--ash)' };
+    const shameUrl = makeShameUrl(e.targetName, e.title, e.points, e.shamedBy);
+    const byLine = e.shamedBy ? `Filed by ${escHtml(e.shamedBy)}` : 'Filed by the team';
+    return `
+    <div class="card" style="padding:22px 26px;display:flex;align-items:flex-start;gap:18px;">
+      <div style="width:42px;height:42px;border-radius:50%;background:var(--coral);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;flex-shrink:0;">${initials}</div>
+      <div style="min-width:0;flex:1;">
+        <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px;">
+          <span style="font-weight:600;font-size:15px;color:var(--ink);">${escHtml(e.targetName)}</span>
+          <span class="mono" style="font-size:10px;color:${t.color};">${escHtml(t.title)}</span>
+          <span class="mono" style="font-size:10px;color:var(--ash-2);margin-left:auto;">${timeAgo(e.timestamp_ms)}</span>
+        </div>
+        <div style="font-size:14px;color:var(--ink-soft);margin-bottom:8px;font-style:italic;">"${escHtml(e.title)}"</div>
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <span class="mono" style="font-weight:700;color:var(--coral-deep);font-size:13px;">+${e.points} pts</span>
+          <span class="mono" style="font-size:10px;color:var(--ash);">${byLine}</span>
+          <button onclick="copyShameLink(${JSON.stringify(e.targetName)},${JSON.stringify(e.title)},${e.points},${JSON.stringify(e.shamedBy)},this)" class="mono" style="margin-left:auto;font-size:10px;color:var(--ash-2);background:none;border:1px solid var(--line);border-radius:6px;padding:3px 10px;cursor:pointer;letter-spacing:0.04em;">⎘ Copy link</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 // ═══════════════════════════════════════════════════════════════════
