@@ -12,6 +12,10 @@ export async function onRequest(context) {
 
   const esc = s => s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 
+  const redirectParams = new URLSearchParams({ linezero: '', shameName: name, shameTitle: title, shamePoints: points });
+  if (by) redirectParams.set('shameBy', by);
+  const redirectUrl = '/app.html?' + redirectParams.toString();
+
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -25,10 +29,10 @@ export async function onRequest(context) {
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="${esc(ogTitle)}">
 <meta name="twitter:description" content="${esc(ogDesc)}">
-<meta http-equiv="refresh" content="0;url=/app.html?linezero">
+<meta http-equiv="refresh" content="0;url=${esc(redirectUrl)}">
 </head>
 <body>
-<script>window.location.replace('/app.html?linezero');</script>
+<script>window.location.replace(${JSON.stringify(redirectUrl)});</script>
 </body>
 </html>`;
 

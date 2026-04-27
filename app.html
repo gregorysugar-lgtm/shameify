@@ -921,7 +921,7 @@ function claimIdentity(userId) {
   showMainApp();
 }
 
-function enterDemoMode() {
+function enterDemoMode(pendingShame) {
   state.demoMode = true;
   state.users = LINEZERO_USERS.map(u => ({ ...u, infractions: u.infractions.map(i => ({...i})), badges: [...u.badges] }));
   state.ledger = state.users.flatMap(u =>
@@ -931,6 +931,20 @@ function enterDemoMode() {
       timestamp_ms: inf.timestamp_ms, witness: inf.witness || '',
     }))
   ).sort((a, b) => b.timestamp_ms - a.timestamp_ms);
+  if (pendingShame) {
+    const matchedUser = state.users.find(u => u.name.toLowerCase() === pendingShame.targetName.toLowerCase());
+    state.ledger.unshift({
+      id: 'shared_' + Date.now(),
+      targetId: matchedUser?.id || null,
+      targetName: pendingShame.targetName,
+      shamedBy: pendingShame.shamedBy || null,
+      title: pendingShame.title,
+      points: pendingShame.points,
+      timestamp_ms: Date.now(),
+      witness: '',
+    });
+    state._openLedgerOnLoad = true;
+  }
   const savedId  = getSavedIdentity();
   const savedUser = savedId ? state.users.find(u => u.id === savedId) : null;
   if (savedUser) {
@@ -982,7 +996,12 @@ function showMainApp() {
   document.getElementById('authGate').style.display = 'none';
   document.getElementById('mainApp').classList.remove('hidden');
   updateHeader();
-  showSection('wallOfShame');
+  if (state._openLedgerOnLoad) {
+    state._openLedgerOnLoad = false;
+    showSection('theLedger');
+  } else {
+    showSection('wallOfShame');
+  }
   setTimeout(checkPendingShames, 800);
 }
 
@@ -1005,8 +1024,15 @@ function switchIdentity() {
 }
 
 if (new URL(location.href).searchParams.has('linezero')) {
+  const _p = new URL(location.href).searchParams;
+  const _pendingShame = _p.get('shameName') ? {
+    targetName: _p.get('shameName'),
+    title:      _p.get('shameTitle') || '',
+    points:     parseInt(_p.get('shamePoints')) || 0,
+    shamedBy:   _p.get('shameBy') || null,
+  } : null;
   history.replaceState(null, '', '/app.html');
-  enterDemoMode();
+  enterDemoMode(_pendingShame);
 } else {
   initApp();
 }
