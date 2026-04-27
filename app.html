@@ -417,6 +417,26 @@ input[type="date"]{ color-scheme:light; }
   </div>
 </div>
 
+<!-- Shame Filed Modal (shown to the shamer, not the target) -->
+<div id="shameFiledModal" class="modal-overlay hidden">
+  <div class="card" style="padding:36px;max-width:480px;width:100%;">
+    <div style="text-align:center;margin-bottom:28px;">
+      <span class="stamp stamp-coral" style="margin-bottom:16px;display:inline-flex;">Shamification Sent</span>
+      <h2 class="serif" style="font-size:40px;font-style:italic;color:var(--coral-deep);margin-top:12px;">Filed.</h2>
+      <p class="mono" style="font-size:11px;color:var(--ash);margin-top:4px;">Entered into the permanent, distributed, cloud-backed record.</p>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px;text-align:center;background:rgba(216,118,84,0.04);">
+      <div class="eyebrow" style="margin-bottom:8px;">Shame points added to</div>
+      <div id="shameFiledName" class="serif" style="font-size:28px;font-style:italic;color:var(--coral-deep);margin-bottom:4px;"></div>
+      <div id="shameFiledPoints" class="shame-num" style="font-size:64px;"></div>
+    </div>
+    <p class="mono" style="font-size:11px;color:var(--ash-2);text-align:center;line-height:1.6;margin-bottom:20px;">
+      They will receive their shamification and assigned penance<br>the next time they open the app. 🌚
+    </p>
+    <button onclick="closeShameFiledModal()" class="btn coral full">Filed. My work here is done →</button>
+  </div>
+</div>
+
 <canvas id="shareCanvas" style="display:none" width="800" height="450"></canvas>
 
 <script>
@@ -674,6 +694,16 @@ const LINEZERO_USERS = [
     ],
   },
   {
+    id: 'lz_celina', name: 'Celina Marchese', shame_points: 110, infraction_count: 2,
+    badges: ['early_adopter'],
+    customTitle: 'Sloth running the DMV', customTitleColor: '#B45239',
+    joined_at: _ago(20), last_infraction_title: 'Said "Let\'s Circle Back"', last_infraction_ts: _ago(7),
+    infractions: [
+      { id:'icm1', user_id:'lz_celina', title:'Said "Let\'s Circle Back"',            points: 10, timestamp_ms:_ago(7),  witness:'The whole standup',   deadline:'' },
+      { id:'icm2', user_id:'lz_celina', title:'Missed Deadline',                       points: 50, timestamp_ms:_ago(16), witness:'Self-reported',        deadline:'' },
+    ],
+  },
+  {
     id: 'lz_greg', name: 'Greg Sugar', shame_points: 0, infraction_count: 0,
     badges: ['early_adopter'],
     customTitle: 'Slower than Molasses', customTitleColor: '#C8A45C',
@@ -834,6 +864,7 @@ function showMainApp() {
   document.getElementById('mainApp').classList.remove('hidden');
   updateHeader();
   showSection('wallOfShame');
+  setTimeout(checkPendingShames, 800);
 }
 
 function updateHeader() {
@@ -1025,19 +1056,65 @@ async function addInfraction(infraction) {
   }
 
   if (state.demoMode) state.users.sort((a, b) => b.shame_points - a.shame_points);
-  showPenanceModal(result.points);
+
+  if (targetId === state.session.userId) {
+    ackInfraction(result.id);
+    showPenanceModal(result.points);
+  } else {
+    showShameFiledModal(result.points, target);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
 // PENANCE MODAL
 // ═══════════════════════════════════════════════════════════════════
 
+// Acknowledgment tracking (localStorage per user)
+function getAckedSet() {
+  if (!state.session?.userId) return new Set();
+  return new Set(JSON.parse(localStorage.getItem('shameify_acked_' + state.session.userId) || '[]'));
+}
+function ackInfraction(id) {
+  if (!state.session?.userId) return;
+  const s = getAckedSet(); s.add(id);
+  localStorage.setItem('shameify_acked_' + state.session.userId, JSON.stringify([...s]));
+}
+
+let _shameQueue = [];
+function checkPendingShames() {
+  const acked = getAckedSet();
+  _shameQueue = (state.currentUser?.infractions || []).filter(i => !acked.has(i.id));
+  if (_shameQueue.length) showNextPending();
+}
+function showNextPending() {
+  if (!_shameQueue.length) return;
+  const inf = _shameQueue[0];
+  document.getElementById('penancePoints').textContent = '+' + inf.points;
+  document.getElementById('penanceText').textContent = getRand(CONFIG.PENANCES);
+  document.getElementById('penanceModal').classList.remove('hidden');
+}
+
 function showPenanceModal(points) {
+  _shameQueue = [];
   document.getElementById('penancePoints').textContent = '+' + points;
   document.getElementById('penanceText').textContent = getRand(CONFIG.PENANCES);
   document.getElementById('penanceModal').classList.remove('hidden');
 }
-function closePenanceModal() { document.getElementById('penanceModal').classList.add('hidden'); }
+function closePenanceModal() {
+  document.getElementById('penanceModal').classList.add('hidden');
+  if (_shameQueue.length) {
+    ackInfraction(_shameQueue[0].id);
+    _shameQueue.shift();
+    if (_shameQueue.length) setTimeout(showNextPending, 350);
+  }
+}
+
+function showShameFiledModal(points, targetUser) {
+  document.getElementById('shameFiledName').textContent = targetUser?.name || 'them';
+  document.getElementById('shameFiledPoints').textContent = '+' + points;
+  document.getElementById('shameFiledModal').classList.remove('hidden');
+}
+function closeShameFiledModal() { document.getElementById('shameFiledModal').classList.add('hidden'); }
 
 // ═══════════════════════════════════════════════════════════════════
 // ACHIEVEMENTS
