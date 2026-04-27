@@ -264,6 +264,13 @@ input[type="date"]{ color-scheme:light; }
       </p>
     </div>
 
+    <!-- LineZero shortcut -->
+    <div style="margin-top:14px;">
+      <button onclick="enterDemoMode()" style="width:100%;background:var(--coral);border:2px solid var(--coral-deep);color:#fff;border-radius:16px;padding:17px 20px;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.12em;cursor:pointer;text-transform:uppercase;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:10px;" onmouseover="this.style.background='#B45239';this.style.borderColor='#8B3A2A'" onmouseout="this.style.background='var(--coral)';this.style.borderColor='var(--coral-deep)'">
+        <span style="font-size:16px;">🍊</span> From LineZero? Click Here
+      </button>
+    </div>
+
   </div>
 </div>
 
@@ -553,10 +560,25 @@ const CONFIG = {
 // STATE
 // ═══════════════════════════════════════════════════════════════════
 
+const LINEZERO_USERS = [
+  { id: 'lz_caroline', name: 'Caroline Mikhail',    shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+  { id: 'lz_daniela',  name: 'Daniela Del Boccio',  shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+  { id: 'lz_george',   name: 'George Haddad',        shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+  { id: 'lz_greg',     name: 'Greg Sugar',            shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+  { id: 'lz_joy',      name: 'Joy Fajardo',           shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+  { id: 'lz_mehmet',   name: 'Mehmet Akcagliya',      shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+  { id: 'lz_michael',  name: 'Michael Baskhairoun',   shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+  { id: 'lz_raghav',   name: 'Raghav Bhalla',         shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+  { id: 'lz_rofaiel',  name: 'Rofaiel Tadrous',       shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+  { id: 'lz_victoria', name: 'Victoria Duran',         shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+  { id: 'lz_jack',     name: 'Jack Hamwi',             shame_points: 0, badges: ['early_adopter'], infractions: [], infraction_count: 0, joined_at: Date.now() },
+];
+
 const state = {
   session:     JSON.parse(localStorage.getItem('shameify_session') || 'null'),
   users:       [],
   currentUser: null,
+  demoMode:    false,
 };
 
 function saveSession(s) {
@@ -651,7 +673,16 @@ async function doRegister() {
   }
 }
 
+function enterDemoMode() {
+  state.demoMode = true;
+  state.users = LINEZERO_USERS.map(u => ({ ...u, infractions: [], badges: [...u.badges] }));
+  state.currentUser = state.users.find(u => u.id === 'lz_greg');
+  saveSession({ token: 'demo', userId: 'lz_greg' });
+  showMainApp();
+}
+
 async function doLogout() {
+  state.demoMode = false;
   saveSession(null);
   state.currentUser = null;
   state.users = [];
@@ -673,6 +704,7 @@ async function loadLeaderboard() {
 
 async function initApp() {
   if (!state.session?.token) return;
+  if (state.session.token === 'demo') { enterDemoMode(); return; }
   try {
     [state.currentUser, state.users] = await Promise.all([
       api('/users/' + state.session.userId),
@@ -809,7 +841,15 @@ async function submitCustomInfraction() {
 
 async function addInfraction(infraction) {
   const userId = state.session.userId;
-  const result = await api('/users/' + userId + '/infractions', 'POST', infraction);
+  let result;
+  if (state.demoMode) {
+    const pts     = Math.min(Math.max(parseInt(infraction.points, 10), 1), 10000);
+    const newTotal = (state.currentUser.shame_points || 0) + pts;
+    const badges   = CONFIG.ACHIEVEMENTS.filter(a => newTotal >= a.triggerPoints).map(a => a.id);
+    result = { id: 'demo_' + Date.now(), timestamp_ms: Date.now(), points: pts, new_total: newTotal, badges };
+  } else {
+    result = await api('/users/' + userId + '/infractions', 'POST', infraction);
+  }
   if (!state.currentUser.infractions) state.currentUser.infractions = [];
   state.currentUser.infractions.push({
     id: result.id, user_id: userId,
@@ -828,6 +868,7 @@ async function addInfraction(infraction) {
     summary.last_infraction_title = infraction.title;
     summary.last_infraction_ts = result.timestamp_ms;
   }
+  if (state.demoMode) state.users.sort((a, b) => b.shame_points - a.shame_points);
   updateHeader();
   showPenanceModal(result.points);
 }
