@@ -343,19 +343,33 @@ input[type="date"]{ color-scheme:light; }
     <!-- Submit Infraction -->
     <section id="submitInfraction" class="section hidden">
       <div style="margin-bottom:36px;">
-        <div class="eyebrow" style="margin-bottom:12px;">— Confession Booth</div>
-        <h2 class="serif" style="font-size:clamp(36px,5vw,72px);line-height:0.92;margin-bottom:10px;">Submit yourself <span style="font-style:italic;color:var(--coral-deep);">to scrutiny.</span></h2>
-        <p class="mono" style="font-size:12px;color:var(--ash);">The first step is admitting you have a problem. This is step zero.</p>
+        <div id="infractionEyebrow" class="eyebrow" style="margin-bottom:12px;">— Confession Booth</div>
+        <h2 id="infractionHeading" class="serif" style="font-size:clamp(36px,5vw,72px);line-height:0.92;margin-bottom:10px;">Submit yourself <span style="font-style:italic;color:var(--coral-deep);">to scrutiny.</span></h2>
+        <p id="infractionSubtext" class="mono" style="font-size:12px;color:var(--ash);">The first step is admitting you have a problem. This is step zero.</p>
       </div>
+
+      <!-- Mode picker — shown when arriving via nav tab -->
+      <div id="shameModePicker" style="display:none;gap:16px;margin-bottom:36px;">
+        <button onclick="showShameForm('self')" class="shame-mode-btn" onmouseover="this.style.borderColor='var(--ash)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--line)';this.style.transform='none'" style="flex:1;padding:36px 24px;border:1px solid var(--line);border-radius:18px;background:#FBF7EC;cursor:pointer;text-align:center;font-family:'Geist',sans-serif;transition:all .15s;">
+          <div class="serif" style="font-size:32px;font-style:italic;color:var(--ink);margin-bottom:8px;">Myself</div>
+          <div class="mono" style="font-size:11px;color:var(--ash);">The first step is admitting it.</div>
+        </button>
+        <button onclick="showShameForm('other')" class="shame-mode-btn" onmouseover="this.style.borderColor='var(--coral)';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='var(--line)';this.style.transform='none'" style="flex:1;padding:36px 24px;border:1px solid var(--line);border-radius:18px;background:#FBF7EC;cursor:pointer;text-align:center;font-family:'Geist',sans-serif;transition:all .15s;">
+          <div class="serif" style="font-size:32px;font-style:italic;color:var(--coral-deep);margin-bottom:8px;">Someone Else</div>
+          <div class="mono" style="font-size:11px;color:var(--ash);">Justice will be served.</div>
+        </button>
+      </div>
+
+      <div id="shameFormBody" style="display:none;">
       <div class="infraction-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
         <div class="card" style="padding:28px;">
-          <div class="eyebrow" style="margin-bottom:20px;">Custom Infraction Report</div>
+          <div id="infractionFormEyebrow" class="eyebrow" style="margin-bottom:20px;">Custom Infraction Report</div>
           <div style="display:flex;flex-direction:column;gap:16px;">
             <div><label>Who is being shamed?</label><select id="shameTarget" onchange="updateDemeritLabel()"></select></div>
-            <div><label>What did you say you'd do?</label><input type="text" id="infraTitle" placeholder="e.g. 'finish the Q3 deck by EOD Friday'"></div>
-            <div><label>Deadline (that you missed)</label><input type="date" id="infraDeadline"></div>
-            <div><label>Witnesses to your failure</label><input type="text" id="infraWitness" placeholder="e.g. 'the entire team, unfortunately'"></div>
-            <div><label>Shame points (self-assessed)</label><input type="number" id="infraPoints" min="1" max="10000" placeholder="50"></div>
+            <div><label id="labelTitle">What did you say you'd do?</label><input type="text" id="infraTitle" placeholder="e.g. 'finish the Q3 deck by EOD Friday'"></div>
+            <div><label id="labelDeadline">Deadline (that you missed)</label><input type="date" id="infraDeadline"></div>
+            <div><label id="labelWitness">Witnesses to your failure</label><input type="text" id="infraWitness" placeholder="e.g. 'the entire team, unfortunately'"></div>
+            <div><label id="labelPoints">Shame points (self-assessed)</label><input type="number" id="infraPoints" min="1" max="10000" placeholder="50"></div>
             <button id="submitBtn" onclick="submitCustomInfraction()" class="btn coral full">Formally acknowledge my failure →</button>
           </div>
         </div>
@@ -365,6 +379,7 @@ input[type="date"]{ color-scheme:light; }
           <div class="card" style="overflow:hidden;"><div id="demeritList"></div></div>
         </div>
       </div>
+      </div><!-- /shameFormBody -->
     </section>
 
     <!-- Achievements -->
@@ -1011,14 +1026,12 @@ function showSection(id) {
   if (id === 'wallOfShame')      renderLeaderboard();
   if (id === 'submitInfraction') {
     renderDemeritCatalog();
-    const sel = document.getElementById('shameTarget');
-    if (sel && !sel.options.length) {
-      sel.innerHTML = state.users.map(u =>
-        `<option value="${u.id}">${escHtml(u.name)}${u.id === state.session?.userId ? ' (you)' : ''}</option>`
-      ).join('');
-      sel.value = state.session?.userId || '';
-    }
-    updateDemeritLabel();
+    // Show mode picker; form revealed only after user picks
+    document.getElementById('shameModePicker').style.display = 'flex';
+    document.getElementById('shameFormBody').style.display = 'none';
+    document.getElementById('infractionEyebrow').textContent = '— Confession Booth';
+    document.getElementById('infractionHeading').innerHTML = 'Submit yourself <span style="font-style:italic;color:var(--coral-deep);">to scrutiny.</span>';
+    document.getElementById('infractionSubtext').textContent = 'The first step is admitting you have a problem. This is step zero.';
   }
   if (id === 'theLedger')        renderLedger();
   if (id === 'achievements')     renderAchievements();
@@ -1078,17 +1091,39 @@ function renderLeaderboard() {
 
 function showShameForm(mode) {
   showSection('submitInfraction');
+
+  // Hide picker, show form
+  document.getElementById('shameModePicker').style.display = 'none';
+  document.getElementById('shameFormBody').style.display = 'block';
+
+  const isSelf = mode !== 'other';
+
+  // Section header
+  document.getElementById('infractionEyebrow').textContent = isSelf ? '— Confession Booth' : '— Corporate Justice';
+  document.getElementById('infractionHeading').innerHTML = isSelf
+    ? 'Submit yourself <span style="font-style:italic;color:var(--coral-deep);">to scrutiny.</span>'
+    : 'Delivering Corporate Justice? <span style="font-style:italic;color:var(--coral-deep);">Nice.</span>';
+  document.getElementById('infractionSubtext').textContent = isSelf
+    ? 'The first step is admitting you have a problem. This is step zero.'
+    : 'On behalf of the organization, someone must be held accountable.';
+
+  // Form labels + button
+  document.getElementById('infractionFormEyebrow').textContent = isSelf ? 'Custom Infraction Report' : 'Formal Charge Filing';
+  document.getElementById('labelTitle').textContent    = isSelf ? "What did you say you'd do?" : 'What did they do?';
+  document.getElementById('infraTitle').placeholder    = isSelf ? "e.g. 'finish the Q3 deck by EOD Friday'" : "e.g. 'missed the all-hands entirely'";
+  document.getElementById('labelDeadline').textContent = isSelf ? 'Deadline (that you missed)' : 'Deadline they missed';
+  document.getElementById('labelWitness').textContent  = isSelf ? 'Witnesses to your failure' : 'Who witnessed it';
+  document.getElementById('infraWitness').placeholder  = isSelf ? "e.g. 'the entire team, unfortunately'" : "e.g. 'the whole standup, visibly'";
+  document.getElementById('labelPoints').textContent   = isSelf ? 'Shame points (self-assessed)' : 'Shame points (your verdict)';
+  document.getElementById('submitBtn').textContent     = isSelf ? 'Formally acknowledge my failure →' : 'File the charge →';
+
+  // Target dropdown
   const sel = document.getElementById('shameTarget');
   if (!sel) return;
   sel.innerHTML = state.users.map(u =>
     `<option value="${u.id}">${escHtml(u.name)}${u.id === state.session?.userId ? ' (you)' : ''}</option>`
   ).join('');
-  if (mode === 'other') {
-    const firstOther = state.users.find(u => u.id !== state.session?.userId);
-    if (firstOther) sel.value = firstOther.id;
-  } else {
-    sel.value = state.session?.userId || '';
-  }
+  sel.value = isSelf ? (state.session?.userId || '') : (state.users.find(u => u.id !== state.session?.userId)?.id || '');
   updateDemeritLabel();
 }
 
